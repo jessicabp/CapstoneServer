@@ -1,4 +1,4 @@
-from sqlalchemy import Column, ForeignKey, Integer, String
+from sqlalchemy import Column, ForeignKey, Integer, String, TIMESTAMP, Boolean, Float
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 from sqlalchemy import create_engine
@@ -18,12 +18,13 @@ Base = declarative_base()
 class Line(Base):
     __tablename__ = 'line'
     id = Column(Integer, primary_key=True)
-    name = Column(String(80))
-    #password
+    name = Column(String(80), unique=True)
+    password_hashed = Column(String(100))
     traps = relationship("Trap", back_populates="line")
     
-    def __init__(self, name):
+    def __init__(self, name, password):
         self.name = name
+        self.password_hashed = password
         
     def __repr__(self):
         return "<Line: %s>" % self.id
@@ -31,14 +32,15 @@ class Line(Base):
 class Trap(Base):
     __tablename__ = "Trap"
     id = Column(Integer, primary_key=True)
-    rebait_time = Column(DateTime) #Unresolved
-    location = Column(String(100))
+    rebait_time = Column(TIMESTAMP)
+    lat = Column(Float)
+    long = Column(Float)
     line_id = Column(Integer, ForeignKey("line.id"))
     line = relationship("Line", back_populates="traps")
     line_order = Column(Integer)
-    path_side = Column(String(5))
-    broken = Column() #Boolean?
-    moved = Column() #Boolean?
+    path_side = Column(Integer)
+    broken = Column(Boolean)
+    moved = Column(Boolean)
     catches = relationship("Catch", back_populates="trap")
 
     def __init__(self, rebait_time, location, line_id, line_order, path_side, broken, moved):
@@ -61,7 +63,7 @@ class Catch(Base):
     trap = relationship("Trap", back_populates="catches")
     animal_id = Column(Integer, ForeignKey)
     animal = relationship("Animal", back_populates="catches")
-    time = Column(DateTime) #Unresolved
+    time = Column(TIMESTAMP)
     image_id = Column(Integer)
     image = relationship("Image", back_populates="catches")
 
