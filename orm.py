@@ -61,7 +61,7 @@ class Catch(Base):
     id = Column(Integer, primary_key=True)
     trap_id = Column(Integer, ForeignKey("trap.id"))
     trap = relationship("Trap", back_populates="catches")
-    animal_id = Column(Integer, ForeignKey)
+    animal_id = Column(Integer, ForeignKey("animal.id"))
     animal = relationship("Animal", back_populates="catches")
     time = Column(TIMESTAMP)
     image_id = Column(Integer)
