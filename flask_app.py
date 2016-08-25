@@ -1,4 +1,5 @@
 from flask import Flask
+from flask import request
 from flask_restful import Resource, Api
 import orm
 from orm import Line
@@ -14,8 +15,11 @@ class HelloWorld(Resource):
 
 class LineInterface(Resource):
     def get(self):
-        result = sess.query(Line).all()
-        return {'result': result}
+        args = request.args
+        result = sess.query(Line)
+        if 'line_id' in args: result = result.filter_by(id=args['line_id'])
+        if 'name' in args: result = result.filter_by(name=rgs['name'])
+        return {'result': [{'id': line.id, 'name': line.name} for line in result.all()]}
 
     def put(self):
         pass
