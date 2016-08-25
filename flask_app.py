@@ -9,19 +9,16 @@ api = Api(app)
 
 sess = orm.get_session()
 
-class HelloWorld(Resource):
-    def get(self):
-        return {'hello': 'world'}
-
 class LineInterface(Resource):
     def get(self):
         args = request.args
         result = sess.query(Line)
         if 'line_id' in args: result = result.filter_by(id=args['line_id'])
-        if 'name' in args: result = result.filter_by(name=rgs['name'])
+        if 'name' in args: result = result.filter_by(name=args['name'])
         return {'result': [{'id': line.id, 'name': line.name} for line in result.all()]}
 
     def put(self):
+        json_data = request.get_json()
         pass
 
     def post(self):
@@ -48,8 +45,6 @@ class CatchInterface(Resource):
     def post(self):
         pass
 
-
-api.add_resource(HelloWorld, "/")
 api.add_resource(LineInterface, "/line")
 api.add_resource(TrapInterface, "/trap")
 api.add_resource(CatchInterface, "/catch")
