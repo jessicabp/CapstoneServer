@@ -21,16 +21,16 @@ class Line(Base):
     name = Column(String(80), unique=True)
     password_hashed = Column(String(100))
     traps = relationship("Trap", back_populates="line")
-    
+
     def __init__(self, name, password):
         self.name = name
         self.password_hashed = password
-        
+
     def __repr__(self):
         return "<Line: %s>" % self.id
-        
+
 class Trap(Base):
-    __tablename__ = "Trap"
+    __tablename__ = "trap"
     id = Column(Integer, primary_key=True)
     rebait_time = Column(TIMESTAMP)
     lat = Column(Float)
@@ -57,7 +57,7 @@ class Trap(Base):
 
 
 class Catch(Base):
-    __tablename__ = "Catch"
+    __tablename__ = "catch"
     id = Column(Integer, primary_key=True)
     trap_id = Column(Integer, ForeignKey("trap.id"))
     trap = relationship("Trap", back_populates="catches")
@@ -75,7 +75,7 @@ class Catch(Base):
 
 
 class Animal(Base):
-    __tablename__ = "Animal"
+    __tablename__ = "animal"
     id = Column(Integer, primary_key=True)
     name = Column(String(30))
     catches = relationship("Catch", back_populates="animal")
@@ -87,7 +87,7 @@ class Animal(Base):
         return "<Animal: %s>" % self.id
 
 class Image(Base):
-    __tablename__ = "Image"
+    __tablename__ = "image"
     id = Column(Integer, primary_key=True)
     url = Column(String(100))
     catches = relationship("Catch", back_populates="image")
