@@ -62,10 +62,9 @@ class Catch(Base):
     trap_id = Column(Integer, ForeignKey("trap.id"))
     trap = relationship("Trap", back_populates="catches")
     animal_id = Column(Integer, ForeignKey("animal.id"))
-    animal = relationship("Animal", back_populates="catches")
+    animal = relationship("Animal")
     time = Column(TIMESTAMP)
-    image_id = Column(Integer)
-    image = relationship("Image", back_populates="catches")
+    images = relationship("Image", back_populates="catch")
 
     def __init__(self):
         pass
@@ -78,7 +77,6 @@ class Animal(Base):
     __tablename__ = "animal"
     id = Column(Integer, primary_key=True)
     name = Column(String(30))
-    catches = relationship("Catch", back_populates="animal")
 
     def __init__(self, name):
         self.name = name
@@ -89,8 +87,9 @@ class Animal(Base):
 class Image(Base):
     __tablename__ = "image"
     id = Column(Integer, primary_key=True)
+    catch_id = Column(Integer, ForeignKey("catch.id"))
     url = Column(String(100))
-    catches = relationship("Catch", back_populates="image")
+    catch = relationship("Catch", back_populates="images")
 
     def __init__(self, url):
         self.url = url

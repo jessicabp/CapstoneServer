@@ -14,7 +14,8 @@ class HelloWorld(Resource):
 
 class LineInterface(Resource):
     def get(self):
-        pass
+        result = sess.query(Line).all()
+        return {'result': result}
 
     def put(self):
         pass
