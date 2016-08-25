@@ -2,7 +2,7 @@ from flask import Flask
 from flask import request
 from flask_restful import Resource, Api
 import orm
-from orm import Line
+from orm import Line, Trap
 
 app = Flask(__name__)
 api = Api(app)
@@ -19,17 +19,59 @@ class LineInterface(Resource):
 
     def put(self):
         json_data = request.get_json()
-        pass
+        # TODO: add security layer to PUT /line
+        # TODO: add ability to edit existing if "id" is given in a line
+        # TODO: handle errors
+        lines = []
+        for line_data in json_data:
+            line = Line(line_data['name'], line_data['password'])
+            lines.append(line)
+            sess.add(line)
+        sess.commit()
+        return {'result': [{'id': line.id, 'name': line.name} for line in lines]}
 
     def post(self):
         pass
 
 class TrapInterface(Resource):
     def get(self):
-        pass
+        args = request.args
+        result = sess.query(Trap)
+        if 'line_id' in args: result = result.filter_by(line_id=args['line_id'])
+        if 'trap_id' in args: result = result.filter_by(id=args['trap_id'])
+        # consider moving this formatting to a method in Trap
+        return {'result': [{'id': trap.id,
+                            'line_id': trap.line_id,
+                            'rebait_time': trap.rebait_time,
+                            'lat': trap.lat,
+                            'long': trap.long,
+                            'line_order': trap.line_order,
+                            'path_side': trap.path_side,
+                            'broken': trap.broken,
+                            'moved': trap.moved}
+                            for trap in result.all()]}
 
     def put(self):
-        pass
+        json_data = request.get_json()
+        # TODO: add security layer to PUT /trap
+        # TODO: add ability to edit existing if "id" is given in a trap
+        # TODO: handle errors
+        traps = []
+        for trap_data in json_data:
+            trap = Trap(trap_data['rebait_time'], trap_data['lat'], trap_data['long'], trap_data['line_id'], trap_data['line_order'], trap_data['path_side'], trap_data['broken'], trap_data['moved'])
+            traps.append(trap)
+            sess.add(trap)
+        sess.commit()
+        return {'result': [{'id': trap.id,
+                            'line_id': trap.line_id,
+                            'rebait_time': trap.rebait_time,
+                            'lat': trap.lat,
+                            'long': trap.long,
+                            'line_order': trap.line_order,
+                            'path_side': trap.path_side,
+                            'broken': trap.broken,
+                            'moved': trap.moved}
+                            for trap in traps]}
 
     def post(self):
         pass

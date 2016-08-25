@@ -43,9 +43,10 @@ class Trap(Base):
     moved = Column(Boolean)
     catches = relationship("Catch", back_populates="trap")
 
-    def __init__(self, rebait_time, location, line_id, line_order, path_side, broken, moved):
+    def __init__(self, rebait_time, lat, long, line_id, line_order, path_side, broken, moved):
         self.rebait_time = rebait_time
-        self.location = location
+        self.lat = lat
+        self.long = long
         self.line_id = line_id
         self.line_order = line_order
         self.path_side = path_side
