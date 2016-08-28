@@ -27,7 +27,7 @@ class Line(Base):
         self.password_hashed = password
 
     def __repr__(self):
-        return "<Line: %s>" % self.id
+        return "<Line id:{} name:{}>".format(self.id, self.name)
 
 class Trap(Base):
     __tablename__ = "trap"
@@ -43,18 +43,19 @@ class Trap(Base):
     moved = Column(Boolean)
     catches = relationship("Catch", back_populates="trap")
 
-    def __init__(self, rebait_time, lat, long, line_id, line_order, path_side, broken, moved):
+    def __init__(self, rebait_time, lat, long, line_id, line_order, path_side):
         self.rebait_time = rebait_time
         self.lat = lat
         self.long = long
         self.line_id = line_id
         self.line_order = line_order
         self.path_side = path_side
-        self.broken = broken
-        self.moved = moved
+        self.broken = False
+        self.moved = False
 
     def __repr__(self):
-        return "<Trap: %s>" % self.id
+        return "<Trap id:{} lat:{} long:{} line_id:{} line_order:{} path_side:{}>".format(
+            self.id, self.lat, self.long, self.line_id, self.line_order, self.path_side)
 
 
 class Catch(Base):
@@ -67,11 +68,14 @@ class Catch(Base):
     time = Column(TIMESTAMP)
     images = relationship("Image", back_populates="catch")
 
-    def __init__(self):
-        pass
+    def __init__(self, trap_id, animal_id, time):
+        self.trap_id = trap_id
+        self.animal_id = animal_id
+        self.time = time
 
     def __repr__(self):
-        return "<Catch: %s>" % self.id
+        return "<Catch id:{} trap_id:{} animal_id:{} time:{}>".format(
+            self.id, self.trap_id, self.animal_id, self.time)
 
 
 class Animal(Base):
@@ -83,7 +87,7 @@ class Animal(Base):
         self.name = name
 
     def __repr__(self):
-        return "<Animal: %s>" % self.id
+        return "<Animal id:{} name:{}".format(self.id, self.name)
 
 class Image(Base):
     __tablename__ = "image"
@@ -96,7 +100,7 @@ class Image(Base):
         self.url = url
 
     def __repr__(self):
-        return "<Image: %s>" % self.id
+        return "<Image id:{} catch_id:{} url:{}>".format(self.id, self.catch_id, self.url)
 
 
 # End Object defs
