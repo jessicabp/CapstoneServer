@@ -4,4 +4,4 @@ python:
     - "3.5"
    
 install: "pip install -r requirements.txt"
-script: database_tests
+script: api_tests
