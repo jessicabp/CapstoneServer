@@ -2,6 +2,7 @@ from flask import Flask
 from flask import request
 from flask_restful import Resource, Api
 import orm
+import collections
 from orm import Line, Trap
 
 app = Flask(__name__)
@@ -22,6 +23,10 @@ class LineInterface(Resource):
         # TODO: add security layer to PUT /line
         # TODO: add ability to edit existing if "id" is given in a line
         # TODO: handle errors
+
+        if not isinstance(json_data, collections.Iterable):
+            pass # TODO: Handle non-iterable error
+
         lines = []
         for line_data in json_data:
             line = Line(line_data['name'], line_data['password'])
@@ -56,9 +61,20 @@ class TrapInterface(Resource):
         # TODO: add security layer to PUT /trap
         # TODO: add ability to edit existing if "id" is given in a trap
         # TODO: handle errors
+
+        if not isinstance(json_data, collections.Iterable):
+            pass  # TODO: Handle non-iterable error
+
         traps = []
         for trap_data in json_data:
-            trap = Trap(trap_data['rebait_time'], trap_data['lat'], trap_data['long'], trap_data['line_id'], trap_data['line_order'], trap_data['path_side'], trap_data['broken'], trap_data['moved'])
+            trap = Trap(trap_data['rebait_time'],
+                        trap_data['lat'],
+                        trap_data['long'],
+                        trap_data['line_id'],
+                        trap_data['line_order'],
+                        trap_data['path_side'],
+                        trap_data['broken'],
+                        trap_data['moved'])
             traps.append(trap)
             sess.add(trap)
         sess.commit()
@@ -70,8 +86,7 @@ class TrapInterface(Resource):
                             'line_order': trap.line_order,
                             'path_side': trap.path_side,
                             'broken': trap.broken,
-                            'moved': trap.moved}
-                            for trap in traps]}
+                            'moved': trap.moved} for trap in traps]}
 
     def post(self):
         pass
