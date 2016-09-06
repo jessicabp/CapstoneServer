@@ -1,8 +1,10 @@
 from flask import Flask
 from flask import request
 from flask_restful import Resource, Api
-import orm
 import collections
+import hashlib
+import binascii
+import orm
 from orm import Line, Trap
 
 app = Flask(__name__)
@@ -29,7 +31,8 @@ class LineInterface(Resource):
 
         lines = []
         for line_data in json_data:
-            line = Line(line_data['name'], line_data['password'])
+            hashed = hashlib.pbkdf2_hmac('sha1', str.encode(line_data['password']), b'salt', 100000)
+            line = Line(line_data['name'], binascii.hexlify(hashed).decode("utf-8"))
             lines.append(line)
             sess.add(line)
         sess.commit()
@@ -77,6 +80,7 @@ class TrapInterface(Resource):
                         trap_data['moved'])
             traps.append(trap)
             sess.add(trap)
+
         sess.commit()
         return {'result': [{'id': trap.id,
                             'line_id': trap.line_id,
