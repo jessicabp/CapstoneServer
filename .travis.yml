@@ -5,3 +5,6 @@ python:
    
 install: "pip install -r requirements.txt"
 script: api_tests
+
+notifications:
+    slack: masseycapstone:3Qztff4DOQZnP35okgztjHrO

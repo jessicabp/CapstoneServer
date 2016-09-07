@@ -3,6 +3,7 @@ from flask import request
 from flask_restful import Resource, Api
 import collections
 import hashlib
+import os
 import binascii
 import orm
 from orm import Line, Trap
@@ -31,8 +32,10 @@ class LineInterface(Resource):
 
         lines = []
         for line_data in json_data:
-            hashed = hashlib.pbkdf2_hmac('sha1', str.encode(line_data['password']), b'salt', 100000)
-            line = Line(line_data['name'], binascii.hexlify(hashed).decode("utf-8"))
+            salt = os.urandom(40)
+            hashed = hashlib.pbkdf2_hmac('sha1', str.encode(line_data['password']), salt, 100000)
+            print(binascii.hexlify(hashed).decode("utf-8"))
+            line = Line(line_data['name'], binascii.hexlify(hashed).decode("utf-8"), binascii.hexlify(salt).decode("utf-8"))
             lines.append(line)
             sess.add(line)
         sess.commit()

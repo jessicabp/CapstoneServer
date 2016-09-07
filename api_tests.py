@@ -5,7 +5,7 @@ from datetime import datetime
 from orm import Line, Trap, Catch
 
 
-testLine = Line("Manawatu", "1234")
+testLine = Line("Manawatu", "1234", "Nothing here")
 testTrap = Trap(datetime.now(), -40.310124, 175.777104, 1, 1, 1)
 testCatch = Catch(1, 1, datetime.now())
 
@@ -99,9 +99,9 @@ class TestCatchInterface(unittest.TestCase):
         flask_app.sess.commit()
         responseJSON = json.loads(self.app.get("/catch").data.decode("utf-8"))["result"]
 
-        self.assertEqual(entiresBefore+1, len(responseJSON), "Trap table update not returned by /trap GET")
-        self.assertEqual(testCatch.trap_id, responseJSON[0]["trap_id"], "Catch.name data modified returned by /trap GET")
-        self.assertEqual(testCatch.animal_id, responseJSON[0]["animal_id"], "Catch.name data modified returned by /trap GET")
+        self.assertEqual(entiresBefore+1, len(responseJSON), "Trap table update not returned by /catch GET")
+        self.assertEqual(testCatch.trap_id, responseJSON[0]["trap_id"], "Catch.name data modified returned by /catch GET")
+        self.assertEqual(testCatch.animal_id, responseJSON[0]["animal_id"], "Catch.name data modified returned by /catch GET")
         #self.assertEqual(testCatch.time, responseJSON[0]["time"], "Catch.name data modified returned by /trap GET") TODO: Convert datetime to JSON
 
     def testPut(self):

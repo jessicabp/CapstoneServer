@@ -19,15 +19,18 @@ class Line(Base):
     __tablename__ = 'line'
     id = Column(Integer, primary_key=True)
     name = Column(String(80), unique=True)
-    password_hashed = Column(String(100))
+    password_hashed = Column(String(40))
+    salt = Column(String(40))
     traps = relationship("Trap", back_populates="line")
 
-    def __init__(self, name, password):
+    def __init__(self, name, password, salt):
         self.name = name
         self.password_hashed = password
+        self.salt = salt
 
     def __repr__(self):
         return "<Line id:{} name:{}>".format(self.id, self.name)
+
 
 class Trap(Base):
     __tablename__ = "trap"
