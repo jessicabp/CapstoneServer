@@ -5,13 +5,15 @@ import collections
 import hashlib
 import os
 import binascii
+import datetime
 import orm
-from orm import Line, Trap
+from orm import Line, Trap, Catch
 
 app = Flask(__name__)
 api = Api(app)
 
 sess = orm.get_session()
+
 
 class LineInterface(Resource):
     def get(self):
@@ -44,6 +46,7 @@ class LineInterface(Resource):
     def post(self):
         pass
 
+
 class TrapInterface(Resource):
     def get(self):
         args = request.args
@@ -53,7 +56,7 @@ class TrapInterface(Resource):
         # consider moving this formatting to a method in Trap
         return {'result': [{'id': trap.id,
                             'line_id': trap.line_id,
-                            'rebait_time': trap.rebait_time,
+                            'rebait_time': trap.rebait_time.timestamp(),
                             'lat': trap.lat,
                             'long': trap.long,
                             'line_order': trap.line_order,
@@ -73,21 +76,22 @@ class TrapInterface(Resource):
 
         traps = []
         for trap_data in json_data:
-            trap = Trap(trap_data['rebait_time'],
+            trap = Trap(datetime.date.fromtimestamp(trap_data['rebait_time']),
                         trap_data['lat'],
                         trap_data['long'],
                         trap_data['line_id'],
                         trap_data['line_order'],
                         trap_data['path_side'],
-                        trap_data['broken'],
-                        trap_data['moved'])
+                        #trap_data['broken'],
+                        #trap_data['moved']
+                        )
             traps.append(trap)
             sess.add(trap)
 
         sess.commit()
         return {'result': [{'id': trap.id,
                             'line_id': trap.line_id,
-                            'rebait_time': trap.rebait_time,
+                            'rebait_time': trap.rebait_time.timestamp(),
                             'lat': trap.lat,
                             'long': trap.long,
                             'line_order': trap.line_order,
@@ -101,10 +105,39 @@ class TrapInterface(Resource):
 
 class CatchInterface(Resource):
     def get(self):
-        pass
+        args = request.args
+        result = sess.query(Catch)
+        if 'line_id' in args: pass # TODO: Relationship query
+        if 'trap_id' in args: result = result.filter_by(id=args['trap_id'])
+
+        return {'result': [{'id': catch.id,
+                            'trap_id': catch.trap_id,
+                            'animal_id': catch.animal_id,
+                            'time': catch.time.timestamp()} for catch in result.all()]}
 
     def put(self):
-        pass
+        json_data = request.get_json()
+        # TODO: add security layer to PUT /trap
+        # TODO: add ability to edit existing if "id" is given in a trap
+        # TODO: handle errors
+
+        if not isinstance(json_data, collections.Iterable):
+            pass  # TODO: Handle non-iterable error
+
+        catches = []
+        for catch_data in json_data:
+            catch = Catch(catch_data['trap_id'],
+                          catch_data['animal_id'],
+                          datetime.date.fromtimestamp(catch_data['time']))
+            catches.append(catch)
+            sess.add(catch)
+
+        sess.commit()
+
+        return {'result': [{'id': catch.id,
+                            'trap_id': catch.trap_id,
+                            'animal_id': catch.animal_id,
+                            'time': catch.time} for catch in catches]}
 
     def post(self):
         pass

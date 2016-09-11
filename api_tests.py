@@ -6,8 +6,8 @@ from orm import Line, Trap, Catch
 
 
 testLine = Line("Manawatu", "1234", "Nothing here")
-testTrap = Trap(datetime.now(), -40.310124, 175.777104, 1, 1, 1)
-testCatch = Catch(1, 1, datetime.now())
+testTrap = Trap(1473431831, -40.310124, 175.777104, 1, 1, 1)
+testCatch = Catch(1, 1, 1473431831)
 
 
 class TestLineInterface(unittest.TestCase):
@@ -66,20 +66,14 @@ class TestTrapInterface(unittest.TestCase):
 
     def testPut(self):
         entiresBefore = len(flask_app.sess.query(Trap).all())
-        jsonData = json.dumps([{"rebait_time": {"year": testTrap.rebait_time.year,
-                                                "month": testTrap.rebait_time.month,
-                                                "day": testTrap.rebait_time.day,
-                                                "hour": testTrap.rebait_time.hour,
-                                                "minute": testTrap.rebait_time.minute,
-                                                "second": testTrap.rebait_time.second,
-                                                "microsecond": testTrap.rebait_time.microsecond},
+        jsonData = json.dumps([{"rebait_time": testTrap.rebait_time,
                                 "lat": testTrap.lat,
                                 "long": testTrap.long,
                                 "line_id": testTrap.line_id,
                                 "line_order": testTrap.line_order,
                                 "path_side": testTrap.path_side}])
         response = self.app.put("/trap", data=jsonData, content_type="application/json")
-        self.assertEqual(entiresBefore+1, len(flask_app.sess.query(Line).all()))
+        self.assertEqual(entiresBefore+1, len(flask_app.sess.query(Trap).all()))
 
 
 class TestCatchInterface(unittest.TestCase):
@@ -108,15 +102,9 @@ class TestCatchInterface(unittest.TestCase):
         entiresBefore = len(flask_app.sess.query(Trap).all())
         jsonData = json.dumps([{"trap_id": testCatch.trap_id,
                                 "animal_id": testCatch.animal_id,
-                                "time": {"year": testTrap.rebait_time.year,
-                                         "month": testTrap.rebait_time.month,
-                                         "day": testTrap.rebait_time.day,
-                                         "hour": testTrap.rebait_time.hour,
-                                         "minute": testTrap.rebait_time.minute,
-                                         "second": testTrap.rebait_time.second,
-                                         "microsecond": testTrap.rebait_time.microsecond}}])
+                                "time": testCatch.time}])
         response = self.app.put("/catch", data=jsonData, content_type="application/json")
-        self.assertEqual(entiresBefore+1, len(flask_app.sess.query(Line).all()))
+        self.assertEqual(entiresBefore+1, len(flask_app.sess.query(Catch).all()))
 
 
 if __name__ == "__main__":
