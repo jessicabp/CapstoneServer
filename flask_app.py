@@ -36,8 +36,7 @@ class LineInterface(Resource):
         for line_data in json_data:
             salt = os.urandom(40)
             hashed = hashlib.pbkdf2_hmac('sha1', str.encode(line_data['password']), salt, 100000)
-            print(binascii.hexlify(hashed).decode("utf-8"))
-            line = Line(line_data['name'], binascii.hexlify(hashed).decode("utf-8"), binascii.hexlify(salt).decode("utf-8"))
+            line = Line(line_data['name'], binascii.hexlify(hashed).decode("utf-8"), binascii.hexlify(salt))
             lines.append(line)
             sess.add(line)
         sess.commit()
@@ -117,8 +116,8 @@ class CatchInterface(Resource):
 
     def put(self):
         json_data = request.get_json()
-        # TODO: add security layer to PUT /trap
-        # TODO: add ability to edit existing if "id" is given in a trap
+        # TODO: add security layer to PUT /catch
+        # TODO: add ability to edit existing if "id" is given in a catch
         # TODO: handle errors
 
         if not isinstance(json_data, collections.Iterable):
@@ -142,9 +141,19 @@ class CatchInterface(Resource):
     def post(self):
         pass
 
+
+class Validate(Resource):
+    def get(self):
+        args = request.args
+        line = sess.query(Line).filter_by(id=args['line_id']).first()
+        hashed = hashlib.pbkdf2_hmac('sha1', str.encode(args['password']), binascii.unhexlify(line.salt), 100000)
+        return {'result': hashed == line.password_hashed}
+
+
 api.add_resource(LineInterface, "/line")
 api.add_resource(TrapInterface, "/trap")
 api.add_resource(CatchInterface, "/catch")
+api.add_resource(Validate, "/validate")
 
 if __name__ == '__main__':
     app.run(debug=True)
