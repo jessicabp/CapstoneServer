@@ -21,30 +21,30 @@ class LineInterface(Resource):
         /line GET request will return lines in JSON format back to the user
 
         Filters (Optional):
-        - line_id=<int> : filters results by id given
-        - name=<string> : filters results by searching for substring
+            - line_id=<int> : filters results by id given
+            - name=<string> : filters results by searching for substring
 
         Returned:
-        - JSONObject: {'result': [line...]}
-        - Line Object: {'id': <int>,
-                        'name': <string>}
+            - JSONObject: {'result': [line...]}
+            - Line Object: {'id': <int>,
+                            'name': <string>}
 
         """
         args = request.args
         result = sess.query(Line)
         if 'line_id' in args: result = result.filter_by(id=args['line_id'])
         if 'name' in args: result = result.filter_by(name=args['name'])
-        return {'result': [line.getDict() for line in result.all()]}
+        return {'result': [line.getDict() for line in result.all()]}, 200
 
     def put(self):
         """
         /line PUT request will write or edit line objects into the database
 
-        Input:
-        - JSONArray: [line...]
-        - Line Object: {'id': <int>, (Optional: if given, overrides set in database. If excluded, creates new line)
-                        'name': <string>,
-                        'password': <string>}
+        Args:
+            - JSONArray: [line...]
+            - Line Object: {'id': <int>, (Optional: if given, overrides set in database. If excluded, creates new line)
+                            'name': <string>,
+                            'password': <string>}
         """
 
         json_data = request.get_json()
@@ -74,15 +74,20 @@ class LineInterface(Resource):
                 sess.add(line)
 
         sess.commit()
-        return {'data': [line.getDict() for line in lines]}
+        return {'result': [line.getDict() for line in lines]}, 201
 
     def delete(self):
         """
         /line DELETE request will delete lines in the database
 
         """
-
-        pass
+        args = request.args
+        if authenticate(args['number'], args['password']):
+            sess.query(Line).filter_by(id = args['number']).delete()
+            sess.commit()
+            return None, 201
+        else:
+            return None, 401
 
 
 class TrapInterface(Resource):
@@ -110,8 +115,7 @@ class TrapInterface(Resource):
         result = sess.query(Trap)
         if 'line_id' in args: result = result.filter_by(line_id=args['line_id'])
         if 'trap_id' in args: result = result.filter_by(id=args['trap_id'])
-        # consider moving this formatting to a method in Trap
-        return {'result': [trap.getDict() for trap in result.all()]}
+        return {'result': [trap.getDict() for trap in result.all()]}, 200
 
     def put(self):
         """
@@ -166,10 +170,18 @@ class TrapInterface(Resource):
                 sess.add(trap)
 
         sess.commit()
-        return {'result': [trap.getDict() for trap in traps]}
+        return {'result': [trap.getDict() for trap in traps]}, 201
 
     def delete(self):
-        pass
+        args = request.args
+        if authenticate(args['line_number'], args['password']):
+            trap = sess.query(Trap).filter_by(id = args['trap_number']).first()
+            if trap.line_id == args['line_number']:
+                sess.query(Trap.filter_by(id = args['trap_number'])).delete()
+                sess.commit()
+            return None, 201
+        else:
+            return None, 401
 
 
 class CatchInterface(Resource):
@@ -193,7 +205,7 @@ class CatchInterface(Resource):
         if 'line_id' in args: result = result.join(Trap.id).filter(Trap.line_id == args['line_id']) # TODO: Test relationship query
         if 'trap_id' in args: result = result.filter_by(id=args['trap_id'])
 
-        return {'result': [catch.getDict() for catch in result.all()]}
+        return {'result': [catch.getDict() for catch in result.all()]}, 200
 
     def put(self):
         """
@@ -233,8 +245,7 @@ class CatchInterface(Resource):
                 sess.add(catch)
 
         sess.commit()
-
-        return {'result': [catch.getDict() for catch in catches]}
+        return {'result': [catch.getDict() for catch in catches]}, 201
 
     def delete(self):
         pass
