@@ -17,13 +17,36 @@ sess = orm.get_session()
 
 class LineInterface(Resource):
     def get(self):
+        """
+        /line GET request will return lines in JSON format back to the user
+
+        Filters (Optional):
+        - line_id=<int> : filters results by id given
+        - name=<string> : filters results by searching for substring
+
+        Returned:
+        - JSONObject: {'result': [line...]}
+        - Line Object: {'id': <int>,
+                        'name': <string>}
+
+        """
         args = request.args
         result = sess.query(Line)
         if 'line_id' in args: result = result.filter_by(id=args['line_id'])
         if 'name' in args: result = result.filter_by(name=args['name'])
-        return {'result': [{'id': line.id, 'name': line.name} for line in result.all()]}
+        return {'result': [line.getDict() for line in result.all()]}
 
     def put(self):
+        """
+        /line PUT request will write or edit line objects into the database
+
+        Input:
+        - JSONArray: [line...]
+        - Line Object: {'id': <int>, (Optional: if given, overrides set in database. If excluded, creates new line)
+                        'name': <string>,
+                        'password': <string>}
+        """
+
         json_data = request.get_json()
 
         # Error checking for processing data
@@ -36,7 +59,7 @@ class LineInterface(Resource):
         for line_data in json_data:
             if "id" in line_data: # ID passed, only edit name of new line
                 line = sess.query(Line).filter_by(id=line_data['id']).first()
-                validate(line_data['id'], line_data['password']) # TODO: Return error if can't validate
+                authenticate(line_data['id'], line_data['password']) # TODO: Return error if can't validate
 
                 line.name = line_data['name']
 
@@ -51,36 +74,64 @@ class LineInterface(Resource):
                 sess.add(line)
 
         sess.commit()
-        return {'data': [{'id': line.id, 'name': line.name} for line in lines]}
+        return {'data': [line.getDict() for line in lines]}
 
-    def post(self):
+    def delete(self):
+        """
+        /line DELETE request will delete lines in the database
+
+        """
+
         pass
 
 
 class TrapInterface(Resource):
     def get(self):
+        """
+        /trap GET request will return traps in JSON format back to the user
+
+        Filters (Optional):
+        - line_id=<int> : filters results by line id given
+        - trap_id=<int> : filters results by trap id given
+
+        Returned:
+        - JSONObject: {'result': [trap...]}
+        - Trap Object: {'id': <int>,
+                        'line_id': <int>,
+                        'rebait_time': <long int>,
+                        'lat': <long int>,
+                        'long': <long int>,
+                        'line_order': <int>,
+                        'broken': <boolean>,
+                        'moved': <boolean>}
+        """
+
         args = request.args
         result = sess.query(Trap)
         if 'line_id' in args: result = result.filter_by(line_id=args['line_id'])
         if 'trap_id' in args: result = result.filter_by(id=args['trap_id'])
         # consider moving this formatting to a method in Trap
-        return {'result': [{'id': trap.id,
-                            'line_id': trap.line_id,
-                            'rebait_time': trap.rebait_time.timestamp(),
-                            'lat': trap.lat,
-                            'long': trap.long,
-                            'line_order': trap.line_order,
-                            'path_side': trap.path_side,
-                            'broken': trap.broken,
-                            'moved': trap.moved}
-                            for trap in result.all()]}
+        return {'result': [trap.getDict() for trap in result.all()]}
 
     def put(self):
-        json_data = request.get_json()
-        # TODO: add security layer to PUT /trap
-        # TODO: add ability to edit existing if "id" is given in a trap
+        """
+        /trap PUT request will write or edit trap objects into the database
 
-        #validate(line_id, args['password']) # TODO: Return error if can't validate
+        Input:
+        - JSONArray: [trap...]
+        - Trap Object: {'id': <int>, (Optional: if given, overrides set in database. If excluded, creates new line)
+                        'line_id': <int>,
+                        'rebait_time': <long int>,
+                        'lat': <long int>,
+                        'long': <long int>,
+                        'line_order': <int>
+                        'broken': <boolean> (Optional on editing set, don't include if creating new trap)
+                        'moved': <boolean> (Optional on editing set, don't include if creating new trap)}
+        """
+
+        json_data = request.get_json()
+
+        #authenticate(line_id, args['password']) # TODO: Return error if can't validate
 
         if not isinstance(json_data, collections.Iterable):
             return {"error": {
@@ -115,36 +166,49 @@ class TrapInterface(Resource):
                 sess.add(trap)
 
         sess.commit()
-        return {'result': [{'id': trap.id,
-                            'line_id': trap.line_id,
-                            'rebait_time': trap.rebait_time.timestamp(),
-                            'lat': trap.lat,
-                            'long': trap.long,
-                            'line_order': trap.line_order,
-                            'path_side': trap.path_side,
-                            'broken': trap.broken,
-                            'moved': trap.moved} for trap in traps]}
+        return {'result': [trap.getDict() for trap in traps]}
 
-    def post(self):
+    def delete(self):
         pass
 
 
 class CatchInterface(Resource):
     def get(self):
+        """
+        /catch GET request will return catches in JSON format back to the user
+
+        Filters (Optional):
+        - line_id=<int> : filters results by line id given by relationship query to a trap
+        - trap_id=<int> : filters results by trap id given
+
+        Returned:
+        - JSONObject: {'result': [catch...]}
+        - Catch Object: {'id': <int>,
+                        'trap_id: <int>,
+                        'animal_id': <int>,
+                        'time': <long int>}
+        """
         args = request.args
         result = sess.query(Catch)
         if 'line_id' in args: result = result.join(Trap.id).filter(Trap.line_id == args['line_id']) # TODO: Test relationship query
         if 'trap_id' in args: result = result.filter_by(id=args['trap_id'])
 
-        return {'result': [{'id': catch.id,
-                            'trap_id': catch.trap_id,
-                            'animal_id': catch.animal_id,
-                            'time': catch.time.timestamp()} for catch in result.all()]}
+        return {'result': [catch.getDict() for catch in result.all()]}
 
     def put(self):
+        """
+        /catch PUT request will write or edit catch objects into the database
+
+        Input:
+        - JSONArray: [catch...]
+        - Catch Object: {'id': <int>, (Optional: if given, overrides set in database. If excluded, creates new line)
+                        'trap_id': <int>,
+                        'animal_id': <int>,
+                        'time': <long int> (Ignored when overriding set in database)}
+        """
         json_data = request.get_json()
 
-        #validate(line_id, args['password']) # TODO: Return error if can't validate
+        #authenticate(line_id, args['password']) # TODO: Return error if can't validate
 
         if not isinstance(json_data, collections.Iterable):
             return {"error": {
@@ -170,20 +234,17 @@ class CatchInterface(Resource):
 
         sess.commit()
 
-        return {'result': [{'id': catch.id,
-                            'trap_id': catch.trap_id,
-                            'animal_id': catch.animal_id,
-                            'time': catch.time} for catch in catches]}
+        return {'result': [catch.getDict() for catch in catches]}
 
-    def post(self):
+    def delete(self):
         pass
 
 
-def validate(line_id, password):
+def authenticate(line_id, password):
     """
-    Validate passwords by compared the line_id
+    Authenticate an inputed password by comparing the line_id hashed password against given password
 
-    Keyword arguments:
+    Arguments:
     line_id -- Line id to compared hashed password stored in database to
     password -- Password to compared hashed password against
     """
