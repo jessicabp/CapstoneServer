@@ -4,12 +4,7 @@ from sqlalchemy.orm import relationship
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-SQLALCHEMY_DATABASE_URI = "mysql+mysqlconnector://{username}:{password}@{hostname}/{databasename}".format(
-    username="traptracker",
-    password="capstone",
-    hostname="traptracker.mysql.pythonanywhere-services.com",
-    databasename="traptracker$traptracker",
-)
+SQLALCHEMY_DATABASE_URI = "sqlite:///traptracker.db"
 
 Base = declarative_base()
 
@@ -30,6 +25,9 @@ class Line(Base):
 
     def __repr__(self):
         return "<Line id:{} name:{}>".format(self.id, self.name)
+
+    def getDict(self):
+        return {'id': self.id, 'name': self.name}
 
 
 class Trap(Base):
@@ -60,6 +58,17 @@ class Trap(Base):
         return "<Trap id:{} lat:{} long:{} line_id:{} line_order:{} path_side:{}>".format(
             self.id, self.lat, self.long, self.line_id, self.line_order, self.path_side)
 
+    def getDict(self):
+        return {'id': self.id,
+                'line_id': self.line_id,
+                'rebait_time': self.rebait_time.timestamp(),
+                'lat': self.lat,
+                'long': self.long,
+                'line_order': self.line_order,
+                'path_side': self.path_side,
+                'broken': self.broken,
+                'moved': self.moved}
+
 
 class Catch(Base):
     __tablename__ = "catch"
@@ -80,6 +89,12 @@ class Catch(Base):
         return "<Catch id:{} trap_id:{} animal_id:{} time:{}>".format(
             self.id, self.trap_id, self.animal_id, self.time)
 
+    def getDict(self):
+        return {'id': self.id,
+                'trap_id': self.trap_id,
+                'animal_id': self.animal_id,
+                'time': self.time.timestamp()}
+
 
 class Animal(Base):
     __tablename__ = "animal"
@@ -91,6 +106,7 @@ class Animal(Base):
 
     def __repr__(self):
         return "<Animal id:{} name:{}".format(self.id, self.name)
+
 
 class Image(Base):
     __tablename__ = "image"
