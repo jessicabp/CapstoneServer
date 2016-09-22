@@ -1,12 +1,13 @@
 import unittest
 import flask_app
 import json
+import time
 from datetime import datetime
 from orm import Line, Trap, Catch
 
 
 testLine = Line("Manawatu", "1234", "Nothing here")
-testTrap = Trap(1473431831, -40.310124, 175.777104, 1, 1, 1)
+testTrap = Trap(datetime.now(), -40.310124, 175.777104, 1, 1, 1)
 testCatch = Catch(1, 1, 1473431831)
 
 
@@ -63,15 +64,22 @@ class TestTrapInterface(unittest.TestCase):
         self.assertEqual(testTrap.broken, responseJSON[0]["broken"], "Trap.broken data modified returned by /trap GET")
         self.assertEqual(testTrap.moved, responseJSON[0]["moved"], "Trap.moved data modified returned by /trap GET")
 
-
     def testPut(self):
         entiresBefore = len(flask_app.sess.query(Trap).all())
-        jsonData = json.dumps([{"rebait_time": testTrap.rebait_time,
+
+        # Set up
+        jsonData = json.dumps([{"name": testLine.name, "password": testLine.password_hashed}])
+        self.app.put("/line", data=jsonData, content_type="application/json")
+
+        jsonData = json.dumps({"line_id": 1,
+                               "password": "1234",
+                                "traps": [
+                                {"rebait_time": time.mktime(testTrap.rebait_time.timetuple()),
                                 "lat": testTrap.lat,
                                 "long": testTrap.long,
                                 "line_id": testTrap.line_id,
                                 "line_order": testTrap.line_order,
-                                "path_side": testTrap.path_side}])
+                                "path_side": testTrap.path_side}]})
         response = self.app.put("/trap", data=jsonData, content_type="application/json")
         self.assertEqual(entiresBefore+1, len(flask_app.sess.query(Trap).all()))
 
