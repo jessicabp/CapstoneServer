@@ -109,11 +109,12 @@ class TrapInterface(Resource):
         Returns:
         - JSONObject: {'result': [Trap...]}
         - Trap Object: {'id': <int>,
-                        'line_id': <int>,
                         'rebait_time': <long int>,
-                        'lat': <long int>,
-                        'long': <long int>,
+                        'lat': <float>,
+                        'long': <float>,
+                        'line_id': <int>,
                         'line_order': <int>,
+                        'path_side': <int>,
                         'broken': <boolean>,
                         'moved': <boolean>}
         """
@@ -134,12 +135,13 @@ class TrapInterface(Resource):
                            "password": <string>,
                            "traps": [Trap...]}
             - Trap Object: {'id': <int>, (Optional: if given, overrides set in database. If excluded, creates new line)
-                            'line_id': <int>,
                             'rebait_time': <long int>,
-                            'lat': <long int>,
-                            'long': <long int>,
-                            'line_order': <int>
-                            'broken': <boolean> (Optional on editing set, don't include if creating new trap)
+                            'lat': <float>,
+                            'long': <float>,
+                            'line_id': <int>,
+                            'line_order': <int>,
+                            'path_side': <int>,
+                            'broken': <boolean>, (Optional on editing set, don't include if creating new trap)
                             'moved': <boolean> (Optional on editing set, don't include if creating new trap)}
         """
 
@@ -159,16 +161,17 @@ class TrapInterface(Resource):
                 # Edit values apart of trap
                 trap.lat = trap_data['lat']
                 trap.long = trap_data['long']
-                trap.line_id = trap_data['line_id']  # Don't know if this should be here
-                trap.line_order = trap_data['line_order']  # Don't know if this should be here
-                trap.path_side = trap_data['path_side']  # Don't know if this should be here
+                if "line_order" in trap_data:
+                    trap.line_order = trap_data['line_order']
+                if "path_side" in trap_data:
+                    trap.path_side = trap_data['path_side']
                 if "broken" in trap_data:
                     trap.broken = trap_data['broken']
                 if "moved" in trap_data:
                     trap.moved = trap_data['moved']
 
             else:  # Trap doesn't exist, create a new trap
-                trap = Trap(datetime.date.fromtimestamp(trap_data['rebait_time']),
+                trap = Trap(trap_data['rebait_time'],
                             trap_data['lat'],
                             trap_data['long'],
                             trap_data['line_id'],
@@ -179,7 +182,7 @@ class TrapInterface(Resource):
                 sess.add(trap)
 
         sess.commit()
-        return {'result': [trap.id for trap in traps]}, 201
+        return {'result': [trap.getDict() for trap in traps]}, 201
 
     def delete(self):
         """
@@ -226,11 +229,10 @@ class CatchInterface(Resource):
         """
         args = request.args
         result = sess.query(Catch)
-        print(args['line_id'])
         if 'line_id' in args: result = sess.query(Catch).join(Trap).filter(Trap.line_id == args['line_id'])
-        if 'trap_id' in args: result = result.filter_by(id=args['trap_id'])
+        if 'trap_id' in args: result = result.filter_by(trap_id=args['trap_id'])
 
-        return {'result': [catch.id for catch in result.all()]}, 200
+        return {'result': [catch.getDict() for catch in result.all()]}, 200
 
     def put(self):
         """
@@ -252,7 +254,7 @@ class CatchInterface(Resource):
             return {"message": "could not validate password"}, 403
 
         if not isinstance(json_data["catches"], collections.Iterable):
-            return {"message": "non iterable datatype passed with traps"}
+            return {"message": "non iterable datatype passed with traps"}, 400
 
         catches = []
         for catch_data in json_data["catches"]:
@@ -262,12 +264,11 @@ class CatchInterface(Resource):
                 #Edit values in catch
                 catch.trap_id = catch_data['trap_id']
                 catch.animal_id = catch_data['animal_id']
-                #Not editing time of the catch
 
             else: # ID not given, create new catch
                 catch = Catch(catch_data['trap_id'],
                               catch_data['animal_id'],
-                              datetime.date.fromtimestamp(catch_data['time']))
+                              catch_data['time'])
                 catches.append(catch)
                 sess.add(catch)
 
@@ -283,10 +284,6 @@ def authenticate(line_id, password):
         line_id -- Line id to compared hashed password stored in database to
         password -- Password to compared hashed password against
     """
-    print(line_id)
-    print(password)
-
-
     line = sess.query(Line).filter_by(id=line_id).first()
     if line is None:
         return False

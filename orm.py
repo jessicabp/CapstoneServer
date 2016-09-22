@@ -1,4 +1,4 @@
-from sqlalchemy import Column, ForeignKey, Integer, String, TIMESTAMP, Boolean, Float
+from sqlalchemy import Column, ForeignKey, Integer, String, BigInteger, Boolean, Float
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 from sqlalchemy import create_engine
@@ -16,7 +16,6 @@ class Line(Base):
     name = Column(String(80), unique=True)
     password_hashed = Column(String(40))
     salt = Column(String(40))
-    traps = relationship("Trap", back_populates="line")
 
     def __init__(self, name, password, salt):
         self.name = name
@@ -33,16 +32,14 @@ class Line(Base):
 class Trap(Base):
     __tablename__ = "trap"
     id = Column(Integer, primary_key=True)
-    rebait_time = Column(TIMESTAMP)
+    rebait_time = Column(BigInteger)
     lat = Column(Float)
     long = Column(Float)
     line_id = Column(Integer, ForeignKey("line.id"))
-    line = relationship("Line", back_populates="traps")
     line_order = Column(Integer)
     path_side = Column(Integer)
     broken = Column(Boolean)
     moved = Column(Boolean)
-    catches = relationship("Catch", back_populates="trap")
 
     def __init__(self, rebait_time, lat, long, line_id, line_order, path_side):
         self.rebait_time = rebait_time
@@ -60,10 +57,10 @@ class Trap(Base):
 
     def getDict(self):
         return {'id': self.id,
-                'line_id': self.line_id,
-                'rebait_time': self.rebait_time.timestamp(),
+                'rebait_time': self.rebait_time,
                 'lat': self.lat,
                 'long': self.long,
+                'line_id': self.line_id,
                 'line_order': self.line_order,
                 'path_side': self.path_side,
                 'broken': self.broken,
@@ -74,11 +71,9 @@ class Catch(Base):
     __tablename__ = "catch"
     id = Column(Integer, primary_key=True)
     trap_id = Column(Integer, ForeignKey("trap.id"))
-    trap = relationship("Trap", back_populates="catches")
     animal_id = Column(Integer, ForeignKey("animal.id"))
     animal = relationship("Animal")
-    time = Column(TIMESTAMP)
-    images = relationship("Image", back_populates="catch")
+    time = Column(BigInteger)
 
     def __init__(self, trap_id, animal_id, time):
         self.trap_id = trap_id
@@ -93,7 +88,7 @@ class Catch(Base):
         return {'id': self.id,
                 'trap_id': self.trap_id,
                 'animal_id': self.animal_id,
-                'time': self.time.timestamp()}
+                'time': self.time}
 
 
 class Animal(Base):
@@ -113,7 +108,6 @@ class Image(Base):
     id = Column(Integer, primary_key=True)
     catch_id = Column(Integer, ForeignKey("catch.id"))
     url = Column(String(100))
-    catch = relationship("Catch", back_populates="images")
 
     def __init__(self, url):
         self.url = url
