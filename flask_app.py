@@ -5,7 +5,7 @@ import collections
 import hashlib
 import os
 import binascii
-import datetime
+import logging
 import orm
 from orm import Line, Trap, Catch
 
@@ -22,17 +22,22 @@ class LineInterface(Resource):
 
         Args:
             - line_id=<int> : filters results by id given (Optional)
-            - name=<string> : filters results by searching for substring (Optional)
+            - name=<string> : filters results by searching for string input as substring (Optional)
 
         Returns:
             - JSONObject: {"result": [Line...]}
             - Line Object: {"id": <int>,
                             "name": <string>}
+
+        Example:
+            - /line             ->  [{"id":1, "name":"Foo"}, {"id":2, "name":"Bar"}]
+            - /line?line_id=1   ->  [{"id":1, "name":"Foo"}]
+            - /line?name=Ba     ->  [{"id":2, "name":"Bar"}]
         """
         args = request.args
         result = sess.query(Line)
         if 'line_id' in args: result = result.filter_by(id=args['line_id'])
-        if 'name' in args: result = result.filter_by(name=args['name'])
+        if 'name' in args: result = result.filter(Line.name.like("%{}%".format(args['name'])))
         return {'result': [line.getDict() for line in result.all()]}, 200
 
     def put(self):
@@ -45,33 +50,37 @@ class LineInterface(Resource):
             - Line Object: {"id": <int>, (Optional: if given, overrides set in database. If excluded, creates new line)
                             "name": <string>,
                             "password": <string>}
+
+        Example payload:
+            [{"id":1, "name":"Foo", "password":"1234"}]
         """
 
         json_data = request.get_json()
 
         # Error checking for processing data
-        if not isinstance(json_data, collections.Iterable):
-            return {"error": {
-                        "code": 0, # TODO: Change error code
-                        "message": "Non iterable type returned"}}
+        if not isinstance(json_data, list):
+            return {"message": "non iterable datatype passed with lines"}, 400
 
         lines = []
-        for line_data in json_data:
-            if "id" in line_data: # ID passed, only edit name of new line
-                line = sess.query(Line).filter_by(id=line_data['id']).first()
-                authenticate(line_data['id'], line_data['password']) # TODO: Return error if can't validate
+        try:
+            for line_data in json_data:
+                if "id" in line_data: # ID passed, only edit name of new line
+                    line = sess.query(Line).filter_by(id=line_data['id']).first()
+                    authenticate(line_data['id'], line_data['password']) # TODO: Return error if can't validate
 
-                line.name = line_data['name']
+                    line.name = line_data['name']
 
-            else: # ID isn't passed, create new line
-                # Create salt and hash password
-                salt = os.urandom(40)
-                hashed = hashlib.pbkdf2_hmac('sha1', str.encode(line_data['password']), salt, 100000)
+                else: # ID isn't passed, create new line
+                    # Create salt and hash password
+                    salt = os.urandom(40)
+                    hashed = hashlib.pbkdf2_hmac('sha1', str.encode(line_data['password']), salt, 100000)
 
-                # Create line and store in database
-                line = Line(line_data['name'], binascii.hexlify(hashed).decode("utf-8"), binascii.hexlify(salt))
-                lines.append(line)
-                sess.add(line)
+                    # Create line and store in database
+                    line = Line(line_data['name'], binascii.hexlify(hashed).decode("utf-8"), binascii.hexlify(salt))
+                    lines.append(line)
+                    sess.add(line)
+        except:
+            return {"message": "could not enter line into database (Missing key/failure to write)"}, 400
 
         sess.commit()
         return {'result': [line.getDict() for line in lines]}, 201
@@ -117,6 +126,10 @@ class TrapInterface(Resource):
                         'path_side': <int>,
                         'broken': <boolean>,
                         'moved': <boolean>}
+
+        Example:
+            - /trap?line_id=1   ->  [{TrapObject}, {TrapObject}, {TrapObject}]
+            - /trap?trap_id=1   ->  [{TrapObject}]
         """
 
         args = request.args
@@ -143,6 +156,9 @@ class TrapInterface(Resource):
                             'path_side': <int>,
                             'broken': <boolean>, (Optional on editing set, don't include if creating new trap)
                             'moved': <boolean> (Optional on editing set, don't include if creating new trap)}
+
+        Example payload:
+            {"line_id":1, "password":"1234", "traps":[{TrapObject}, {TrapObject}, {TrapObject}]}
         """
 
         json_data = request.get_json()
@@ -150,36 +166,39 @@ class TrapInterface(Resource):
         if not authenticate(json_data['line_id'], json_data['password']):
             return {"message": "could not validate password"}, 403
 
-        if not isinstance(json_data['traps'], collections.Iterable):
+        if not isinstance(json_data['traps'], list):
             return {"message": "non iterable datatype passed with traps"}, 400
 
         traps = []
-        for trap_data in json_data['traps']:
-            if "id" in trap_data: # ID passed, edit parameters of trap
-                trap = sess.query(Trap).filter_by(id=trap_data['id']).first()
+        try:
+            for trap_data in json_data['traps']:
+                if "id" in trap_data: # ID passed, edit parameters of trap
+                    trap = sess.query(Trap).filter_by(id=trap_data['id']).first()
 
-                # Edit values apart of trap
-                trap.lat = trap_data['lat']
-                trap.long = trap_data['long']
-                if "line_order" in trap_data:
-                    trap.line_order = trap_data['line_order']
-                if "path_side" in trap_data:
-                    trap.path_side = trap_data['path_side']
-                if "broken" in trap_data:
-                    trap.broken = trap_data['broken']
-                if "moved" in trap_data:
-                    trap.moved = trap_data['moved']
+                    # Edit values apart of trap
+                    trap.lat = trap_data['lat']
+                    trap.long = trap_data['long']
+                    if "line_order" in trap_data:
+                        trap.line_order = trap_data['line_order']
+                    if "path_side" in trap_data:
+                        trap.path_side = trap_data['path_side']
+                    if "broken" in trap_data:
+                        trap.broken = trap_data['broken']
+                    if "moved" in trap_data:
+                        trap.moved = trap_data['moved']
 
-            else:  # Trap doesn't exist, create a new trap
-                trap = Trap(trap_data['rebait_time'],
-                            trap_data['lat'],
-                            trap_data['long'],
-                            trap_data['line_id'],
-                            trap_data['line_order'],
-                            trap_data['path_side'],
-                            )
-                traps.append(trap)
-                sess.add(trap)
+                else:  # Trap doesn't exist, create a new trap
+                    trap = Trap(trap_data['rebait_time'],
+                                trap_data['lat'],
+                                trap_data['long'],
+                                trap_data['line_id'],
+                                trap_data['line_order'],
+                                trap_data['path_side'],
+                                )
+                    traps.append(trap)
+                    sess.add(trap)
+        except:
+            return {"message": "could not enter trap into database (Missing key/failure to write)"}, 400
 
         sess.commit()
         return {'result': [trap.getDict() for trap in traps]}, 201
@@ -253,24 +272,27 @@ class CatchInterface(Resource):
         if not authenticate(json_data['line_id'], json_data['password']):
             return {"message": "could not validate password"}, 403
 
-        if not isinstance(json_data["catches"], collections.Iterable):
-            return {"message": "non iterable datatype passed with traps"}, 400
+        if not isinstance(json_data["catches"], list):
+            return {"message": "non iterable datatype passed with catches"}, 400
 
         catches = []
-        for catch_data in json_data["catches"]:
-            if "id" in catch_data:
-                catch = sess.query(Catch).filter_by(id=catch_data['id']).first()
+        try:
+            for catch_data in json_data["catches"]:
+                if "id" in catch_data:
+                    catch = sess.query(Catch).filter_by(id=catch_data['id']).first()
 
-                #Edit values in catch
-                catch.trap_id = catch_data['trap_id']
-                catch.animal_id = catch_data['animal_id']
+                    #Edit values in catch
+                    catch.trap_id = catch_data['trap_id']
+                    catch.animal_id = catch_data['animal_id']
 
-            else: # ID not given, create new catch
-                catch = Catch(catch_data['trap_id'],
-                              catch_data['animal_id'],
-                              catch_data['time'])
-                catches.append(catch)
-                sess.add(catch)
+                else: # ID not given, create new catch
+                    catch = Catch(catch_data['trap_id'],
+                                  catch_data['animal_id'],
+                                  catch_data['time'])
+                    catches.append(catch)
+                    sess.add(catch)
+        except:
+            return {"message": "could not enter catch into database (Missing key/failure to write)"}, 400
 
         sess.commit()
         return {'result': [catch.getDict() for catch in catches]}, 201
@@ -292,10 +314,17 @@ def authenticate(line_id, password):
 
     return binascii.hexlify(hash_compare).decode("utf-8") == line.password_hashed
 
+# Set up logging
+logging.basicConfig(
+    filename="server.log",
+    filemode="a",  # Append
+    level=logging.WARN
+)
+logging.getLogger('sqlalchemy.engine').setLevel(logging.WARN)
 
 api.add_resource(LineInterface, "/line")
 api.add_resource(TrapInterface, "/trap")
 api.add_resource(CatchInterface, "/catch")
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=False)

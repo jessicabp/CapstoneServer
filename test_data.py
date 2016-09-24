@@ -5,7 +5,7 @@ import hashlib
 import os
 import binascii
 import flask_app as fa
-from orm import Line, Trap, Catch
+from orm import Line, Trap, Catch, Image, Animal
 
 
 def pushData(bitAdd):
@@ -37,8 +37,6 @@ def pushData(bitAdd):
 
     for ob in dataList:
         fa.sess.add(ob)
-
-    # Commit everything
     fa.sess.commit()
 
 
@@ -49,4 +47,4 @@ def createHashLine(name, password):
 
 
 if __name__ == '__main__':
-    pushData()
+    pushData("111")
