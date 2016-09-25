@@ -58,6 +58,12 @@ class TestLineInterface(unittest.TestCase):
         self.assertEqual(response.status_code, 400, "Wrong error code returned with missing key")
         self.assertIn("could not enter line into database", response.data.decode("utf-8"), "Wrong message given")
 
+    def testDelete(self):
+        entiresBefore = len(flask_app.sess.query(Line).all())
+        jsonData = json.dumps({"line_id": 1, "password": "password"})
+        self.app.delete("/line", data=jsonData, content_type="application/json")
+        self.assertEqual(entiresBefore-1, len(flask_app.sess.query(Line).all()), "/line DELETE did not delete line")
+
 
 
 class TestTrapInterface(unittest.TestCase):
@@ -136,6 +142,14 @@ class TestTrapInterface(unittest.TestCase):
         response = self.app.put("/trap", data=jsonData, content_type="application/json")
         self.assertEqual(response.status_code, 400, "Wrong error code returned with missing key")
         self.assertIn("could not enter trap into database", response.data.decode("utf-8"), "Wrong message given")
+
+    def testDelete(self):
+        entiresBefore = len(flask_app.sess.query(Line).all())
+        jsonData = json.dumps({"line_id": 1,
+                           "password": "password",
+                           "traps": [1,4]})
+        self.app.delete("/trap", data=jsonData, content_type="application/json")
+        self.assertEqual(entiresBefore-2, len(flask_app.sess.query(Line).all()), "/trap DELETE did not delete traps")
 
 
 class TestCatchInterface(unittest.TestCase):

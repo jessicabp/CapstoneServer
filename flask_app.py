@@ -1,7 +1,6 @@
 from flask import Flask
 from flask import request
 from flask_restful import Resource, Api
-import collections
 import hashlib
 import os
 import binascii
@@ -99,7 +98,6 @@ class LineInterface(Resource):
 
         if authenticate(json_data['line_id'], json_data['password']):
             num = sess.query(Line).filter_by(id = json_data['line_id']).delete()
-            print(num)
             sess.commit()
             return None, 201
         else:
@@ -209,17 +207,17 @@ class TrapInterface(Resource):
 
         Content-type: application/json
         Payload:
-            - JSONObject: {"line_number": <int>,
+            - JSONObject: {"line_id": <int>,
                            "password": <string>,
                            "traps": [<int>...]}
 
         """
         json_data = request.get_json()
-        if authenticate(json_data['line_number'], json_data['password']):
+        if authenticate(json_data['line_id'], json_data['password']):
             # Make sure they all belong to the same line
             traps = sess.query(Trap).filter(Trap.id.in_(json_data['traps'])).all()
             for trap in traps:
-                if trap.line_id != json_data['line_number']:
+                if trap.line_id != json_data['line_id']:
                     return {"message": "trap belongs to different line"}, 400
 
             # Delete traps
