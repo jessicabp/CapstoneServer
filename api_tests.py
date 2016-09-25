@@ -10,7 +10,6 @@ testTrap = Trap(1473431831, -40.310124, 175.777104, 1, 5, 1)
 testCatch = Catch(1, 1, 1473431831)
 
 
-
 class TestLineInterface(unittest.TestCase):
     def setUp(self):
         flask_app.app.config["TESTING"] = True
@@ -63,7 +62,6 @@ class TestLineInterface(unittest.TestCase):
         jsonData = json.dumps({"line_id": 1, "password": "password"})
         self.app.delete("/line", data=jsonData, content_type="application/json")
         self.assertEqual(entiresBefore-1, len(flask_app.sess.query(Line).all()), "/line DELETE did not delete line")
-
 
 
 class TestTrapInterface(unittest.TestCase):
@@ -144,12 +142,12 @@ class TestTrapInterface(unittest.TestCase):
         self.assertIn("could not enter trap into database", response.data.decode("utf-8"), "Wrong message given")
 
     def testDelete(self):
-        entiresBefore = len(flask_app.sess.query(Line).all())
+        entiresBefore = len(flask_app.sess.query(Trap).all())
         jsonData = json.dumps({"line_id": 1,
                            "password": "password",
                            "traps": [1,4]})
         self.app.delete("/trap", data=jsonData, content_type="application/json")
-        self.assertEqual(entiresBefore-2, len(flask_app.sess.query(Line).all()), "/trap DELETE did not delete traps")
+        self.assertEqual(entiresBefore-2, len(flask_app.sess.query(Trap).all()), "/trap DELETE did not delete traps")
 
 
 class TestCatchInterface(unittest.TestCase):

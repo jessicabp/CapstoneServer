@@ -65,7 +65,8 @@ class LineInterface(Resource):
             for line_data in json_data:
                 if "id" in line_data: # ID passed, only edit name of new line
                     line = sess.query(Line).filter_by(id=line_data['id']).first()
-                    authenticate(line_data['id'], line_data['password']) # TODO: Return error if can't validate
+                    if not authenticate(line_data['id'], line_data['password']):
+                        return {"message": "could not validate password"}, 403
 
                     line.name = line_data['name']
 
@@ -97,7 +98,7 @@ class LineInterface(Resource):
         json_data = request.get_json()
 
         if authenticate(json_data['line_id'], json_data['password']):
-            num = sess.query(Line).filter_by(id = json_data['line_id']).delete()
+            sess.query(Line).filter_by(id = json_data['line_id']).delete()
             sess.commit()
             return None, 201
         else:
@@ -149,9 +150,9 @@ class TrapInterface(Resource):
                             'rebait_time': <long int>,
                             'lat': <float>,
                             'long': <float>,
-                            'line_id': <int>,
-                            'line_order': <int>,
-                            'path_side': <int>,
+                            'line_id': <int>, (Ignored on editing set)
+                            'line_order': <int>, (Optional on editing set)
+                            'path_side': <int>, (Optional on editing set)
                             'broken': <boolean>, (Optional on editing set, don't include if creating new trap)
                             'moved': <boolean> (Optional on editing set, don't include if creating new trap)}
 
