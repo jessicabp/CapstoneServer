@@ -110,11 +110,11 @@ class TrapInterface(Resource):
         - JSONObject: {'result': [Trap...]}
         - Trap Object: {'id': <int>,
                         'rebait_time': <long int>,
-                        'lat': <float>,
-                        'long': <float>,
+                        'latitude': <float>,
+                        'longitude': <float>,
                         'line_id': <int>,
-                        'line_order': <int>,
-                        'path_side': <int>,
+                        'number': <int>,
+                        'side': <int>,
                         'broken': <boolean>,
                         'moved': <boolean>}
         """
@@ -136,11 +136,11 @@ class TrapInterface(Resource):
                            "traps": [Trap...]}
             - Trap Object: {'id': <int>, (Optional: if given, overrides set in database. If excluded, creates new line)
                             'rebait_time': <long int>,
-                            'lat': <float>,
-                            'long': <float>,
+                            'latitude': <float>,
+                            'longitude': <float>,
                             'line_id': <int>,
-                            'line_order': <int>,
-                            'path_side': <int>,
+                            'number': <int>,
+                            'side': <int>,
                             'broken': <boolean>, (Optional on editing set, don't include if creating new trap)
                             'moved': <boolean> (Optional on editing set, don't include if creating new trap)}
         """
@@ -159,12 +159,12 @@ class TrapInterface(Resource):
                 trap = sess.query(Trap).filter_by(id=trap_data['id']).first()
 
                 # Edit values apart of trap
-                trap.lat = trap_data['lat']
-                trap.long = trap_data['long']
-                if "line_order" in trap_data:
-                    trap.line_order = trap_data['line_order']
-                if "path_side" in trap_data:
-                    trap.path_side = trap_data['path_side']
+                trap.lat = trap_data['latitude']
+                trap.long = trap_data['longitude']
+                if "number" in trap_data:
+                    trap.line_order = trap_data['number']
+                if "side" in trap_data:
+                    trap.path_side = trap_data['side']
                 if "broken" in trap_data:
                     trap.broken = trap_data['broken']
                 if "moved" in trap_data:
@@ -172,11 +172,11 @@ class TrapInterface(Resource):
 
             else:  # Trap doesn't exist, create a new trap
                 trap = Trap(trap_data['rebait_time'],
-                            trap_data['lat'],
-                            trap_data['long'],
+                            trap_data['latitude'],
+                            trap_data['longitude'],
                             trap_data['line_id'],
-                            trap_data['line_order'],
-                            trap_data['path_side'],
+                            trap_data['number'],
+                            trap_data['side'],
                             )
                 traps.append(trap)
                 sess.add(trap)
