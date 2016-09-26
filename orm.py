@@ -58,11 +58,11 @@ class Trap(Base):
     def getDict(self):
         return {'id': self.id,
                 'rebait_time': self.rebait_time,
-                'lat': self.lat,
-                'long': self.long,
+                'latitude': self.lat,
+                'longitude': self.long,
                 'line_id': self.line_id,
-                'line_order': self.line_order,
-                'path_side': self.path_side,
+                'number': self.line_order,
+                'side': self.path_side,
                 'broken': self.broken,
                 'moved': self.moved}
 
