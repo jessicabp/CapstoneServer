@@ -80,11 +80,11 @@ class TestTrapInterface(unittest.TestCase):
                                "password": "password",
                                 "traps": [
                                 {"rebait_time": testTrap.rebait_time,
-                                "lat": testTrap.lat,
-                                "long": testTrap.long,
+                                "latitude": testTrap.lat,
+                                "longitude": testTrap.long,
                                 "line_id": testTrap.line_id,
-                                "line_order": testTrap.line_order,
-                                "path_side": testTrap.path_side}]
+                                "number": testTrap.line_order,
+                                "side": testTrap.path_side}]
                                })
         response = self.app.put("/trap", data=jsonData, content_type="application/json")
 
