@@ -11,7 +11,7 @@ from orm import Line, Trap, Catch, Image, Animal
 def pushData(bitAdd):
     dataList = []  # A list of all objects to add to the database
 
-    if len(bitAdd) != 3 or bitAdd == "000":
+    if len(bitAdd) != 4 or bitAdd == "0000":
         return None
 
     if bitAdd[0] == "1":
@@ -34,6 +34,12 @@ def pushData(bitAdd):
                          Catch(3, 2, 1474533385),
                          Catch(6, 7, 1474544427),
                          Catch(6, 7, 1474533391)])
+
+    if bitAdd[3] == "1":
+        dataList.extend([Animal("Rat"),
+                         Animal("Stoat"),
+                         Animal("Hedgehog"),
+                         Animal("Cat")])
 
     for ob in dataList:
         fa.sess.add(ob)

@@ -2,19 +2,21 @@ import unittest
 import flask_app
 import test_data
 import json
-from orm import Line, Trap, Catch
+from orm import Line, Trap, Catch, Animal
 
 
 testLine = Line("Massey Uni Line", "1234", "")
 testTrap = Trap(1473431831, -40.310124, 175.777104, 1, 5, 1)
 testCatch = Catch(1, 1, 1473431831)
+testAnimal1 = Animal("Possom")
+testAnimal2 = Animal("Ferret")
 
 
 class TestLineInterface(unittest.TestCase):
     def setUp(self):
         flask_app.app.config["TESTING"] = True
         self.app = flask_app.app.test_client()
-        test_data.pushData("100")
+        test_data.pushData("1000")
 
     def tearDown(self):
         flask_app.sess.query(Line).delete()
@@ -68,7 +70,7 @@ class TestTrapInterface(unittest.TestCase):
     def setUp(self):
         flask_app.app.config["TESTING"] = True
         self.app = flask_app.app.test_client()
-        test_data.pushData("110")
+        test_data.pushData("1100")
 
     def tearDown(self):
         flask_app.sess.query(Line).delete()
@@ -154,7 +156,7 @@ class TestCatchInterface(unittest.TestCase):
     def setUp(self):
         flask_app.app.config["TESTING"] = True
         self.app = flask_app.app.test_client()
-        test_data.pushData("111")
+        test_data.pushData("1110")
 
     def tearDown(self):
         flask_app.sess.query(Line).delete()
@@ -168,7 +170,7 @@ class TestCatchInterface(unittest.TestCase):
 
     def testGet_LineQuery(self):
         responseJSON = json.loads(self.app.get("/catch?line_id=2").data.decode("utf-8"))["result"]
-        self.assertEqual(len(responseJSON), 5, "/trap?line_id not returning correct amount")
+        self.assertEqual(len(responseJSON), 5, "/catch?line_id not returning correct amount")
 
     def testGet_TrapQuery(self):
         responseJSON = json.loads(self.app.get("/catch?trap_id=6").data.decode("utf-8"))["result"]
@@ -211,6 +213,65 @@ class TestCatchInterface(unittest.TestCase):
     def testPut_MissingKeyFailure(self):
         jsonData = json.dumps({"line_id": 1, "password":"password", "catches":[{"time": testCatch.time}]})
         response = self.app.put("/catch", data=jsonData, content_type="application/json")
+        self.assertEqual(response.status_code, 400, "Wrong error code returned with missing key")
+        self.assertIn("could not enter catch into database", response.data.decode("utf-8"), "Wrong message given")
+
+
+class TestAnimalInterface(unittest.TestCase):
+    def setUp(self):
+        flask_app.app.config["TESTING"] = True
+        self.app = flask_app.app.test_client()
+        test_data.pushData("1001")
+
+    def tearDown(self):
+        flask_app.sess.query(Line).delete()
+        flask_app.sess.query(Animal).delete()
+        flask_app.sess.commit()
+
+    def testGet_Base(self):
+        responseJSON = json.loads(self.app.get("/animal").data.decode("utf-8"))["result"]
+        self.assertEqual(len(responseJSON), 4, "/animal not returning correct amount with base query")
+
+    def testGet_LineQuery(self):
+        responseJSON = json.loads(self.app.get("/animal?name=C").data.decode("utf-8"))["result"]
+        self.assertEqual(len(responseJSON), 1, "/animal?line_id not returning correct amount")
+
+    def testPut(self):
+        entiresBefore = len(flask_app.sess.query(Animal).all())
+        jsonData = json.dumps({"line_id": 1,
+                                "password": "password",
+                                "animals": [testAnimal1.name, testAnimal2.name]
+                                })
+        response = self.app.put("/animal", data=jsonData, content_type="application/json")
+
+        # Test increase of one + data integrity of all data passed
+        self.assertEqual(entiresBefore+2, len(flask_app.sess.query(Animal).all()))
+        animal = flask_app.sess.query(Animal).filter_by(id=5).first()
+        self.assertEqual(animal.name, testAnimal1.name, "/animal time not stored correctly")
+
+    def testPut_NonListFailure(self):
+        jsonData = json.dumps({"line_id": 1,
+                                "password": "password",
+                                "animals": testAnimal1.name
+                                })
+        response = self.app.put("/animal", data=jsonData, content_type="application/json")
+        self.assertEqual(response.status_code, 400, "Wrong error code returned with non list for traps")
+        self.assertIn("non iterable datatype passed with catches", response.data.decode("utf-8"), "Wrong message given")
+
+    def testPut_CantAuthenticateFailure(self):
+        jsonData = json.dumps({"line_id": 1,
+                                "password": "incorrect",
+                                "animals": [testAnimal1.name, testAnimal2.name]
+                                })
+        response = self.app.put("/animal", data=jsonData, content_type="application/json")
+        self.assertEqual(response.status_code, 403, "Wrong error code returned with failure to authenticate")
+        self.assertIn("could not validate password", response.data.decode("utf-8"), "Wrong message given")
+
+    def testPut_MissingKeyFailure(self):
+        jsonData = json.dumps({"line_id": 1,
+                                "animals": [testAnimal1.name, testAnimal2.name]
+                                })
+        response = self.app.put("/animal", data=jsonData, content_type="application/json")
         self.assertEqual(response.status_code, 400, "Wrong error code returned with missing key")
         self.assertIn("could not enter catch into database", response.data.decode("utf-8"), "Wrong message given")
 

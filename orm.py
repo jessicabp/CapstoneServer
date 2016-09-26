@@ -103,6 +103,9 @@ class Animal(Base):
     def __repr__(self):
         return "<Animal id:{} name:{}".format(self.id, self.name)
 
+    def getDict(self):
+        return {"id": self.id, "name": self.name}
+
 
 class Image(Base):
     __tablename__ = "image"

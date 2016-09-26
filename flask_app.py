@@ -6,7 +6,7 @@ import os
 import binascii
 import logging
 import orm
-from orm import Line, Trap, Catch
+from orm import Line, Trap, Catch, Animal
 
 app = Flask(__name__)
 api = Api(app)
@@ -247,7 +247,7 @@ class CatchInterface(Resource):
         """
         args = request.args
         result = sess.query(Catch)
-        if 'line_id' in args: result = sess.query(Catch).join(Trap).filter(Trap.line_id == args['line_id'])
+        if 'line_id' in args: result = result.join(Trap).filter(Trap.line_id == args['line_id'])
         if 'trap_id' in args: result = result.filter_by(trap_id=args['trap_id'])
 
         return {'result': [catch.getDict() for catch in result.all()]}, 200
@@ -297,6 +297,57 @@ class CatchInterface(Resource):
         return {'result': [catch.getDict() for catch in catches]}, 201
 
 
+class AnimalInterface(Resource):
+    def get(self):
+        """
+        /animal GET request will return animals in JSON format back to the user
+
+        Args:
+        - name=<string> : filters results by searching for string input as substring (Optional)
+
+        Returned:
+            JSONObject: {"result": [animal...]}
+            Animal Object: {"id": <int>,
+                           "name": <string>}
+        """
+        args = request.args
+        result = sess.query(Animal)
+        if 'name' in args: result = result.filter(Animal.name.like("%{}%".format(args['name'])))
+
+        return {'result': [animal.getDict() for animal in result.all()]}, 200
+
+    def put(self):
+        """
+        /animal PUT request will write or edit catch objects into the database
+
+        Content-type: application/json
+        Payload:
+            JSONObject:   {"line_id": <int>
+                           "password": <string>,
+                           "animals": [<string>...]}
+        """
+        json_data = request.get_json()
+
+        try:
+            if not authenticate(json_data['line_id'], json_data['password']):
+                return {"message": "could not validate password"}, 403
+
+            if not isinstance(json_data["animals"], list):
+                return {"message": "non iterable datatype passed with catches"}, 400
+
+            animals = []
+
+            for animal_name in json_data["animals"]:
+                    animal = Animal(animal_name)
+                    animals.append(animal)
+                    sess.add(animal)
+        except:
+            return {"message": "could not enter catch into database (Missing key/failure to write)"}, 400
+
+        sess.commit()
+        return {'result': [animal.getDict() for animal in animals]}, 201
+
+
 def authenticate(line_id, password):
     """
     Authenticate an inputed password by comparing the line_id hashed password against given password
@@ -324,6 +375,7 @@ logging.getLogger('sqlalchemy.engine').setLevel(logging.WARN)
 api.add_resource(LineInterface, "/line")
 api.add_resource(TrapInterface, "/trap")
 api.add_resource(CatchInterface, "/catch")
+api.add_resource(AnimalInterface, "/animal")
 
 if __name__ == '__main__':
     app.run(debug=False)
