@@ -318,7 +318,7 @@ class AnimalInterface(Resource):
 
     def put(self):
         """
-        /animal PUT request will write or edit catch objects into the database
+        /api/animal PUT request will write or edit catch objects into the database
 
         Content-type: application/json
         Payload:
@@ -372,10 +372,10 @@ logging.basicConfig(
 )
 logging.getLogger('sqlalchemy.engine').setLevel(logging.WARN)
 
-api.add_resource(LineInterface, "/line")
-api.add_resource(TrapInterface, "/trap")
-api.add_resource(CatchInterface, "/catch")
-api.add_resource(AnimalInterface, "/animal")
+api.add_resource(LineInterface, "/api/line")
+api.add_resource(TrapInterface, "/api/trap")
+api.add_resource(CatchInterface, "/api/catch")
+api.add_resource(AnimalInterface, "/api/animal")
 
 if __name__ == '__main__':
     app.run(debug=False)
