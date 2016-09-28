@@ -93,9 +93,9 @@ class TestTrapInterface(unittest.TestCase):
     def testGet_TrapQuery(self):
         responseJSON = json.loads(self.app.get(trapUrl + "?trap_id=5").data.decode("utf-8"))["result"]
         self.assertEqual(len(responseJSON), 1, "/trap?trap_id not returning correct amount")
-        self.assertEqual(responseJSON[0]['lat'], -40.312435, "/trap?trap_id returned incorrect lat")
-        self.assertEqual(responseJSON[0]['long'], 175.780965, "/trap?trap_id returned incorrect long")
-        self.assertEqual(responseJSON[0]['line_order'], 4, "/trap?trap_id returned incorrect line_order")
+        self.assertEqual(responseJSON[0]['latitude'], -40.312435, "/trap?trap_id returned incorrect lat")
+        self.assertEqual(responseJSON[0]['longitude'], 175.780965, "/trap?trap_id returned incorrect long")
+        self.assertEqual(responseJSON[0]['number'], 4, "/trap?trap_id returned incorrect line_order")
 
     def testPut(self):
         entiresBefore = len(flask_app.sess.query(Trap).all())
@@ -126,11 +126,11 @@ class TestTrapInterface(unittest.TestCase):
                                "password": "password",
                                 "traps":
                                 {"rebait_time": testTrap.rebait_time,
-                                "lat": testTrap.lat,
-                                "long": testTrap.long,
+                                "latitude": testTrap.lat,
+                                "longitude": testTrap.long,
                                 "line_id": testTrap.line_id,
-                                "line_order": testTrap.line_order,
-                                "path_side": testTrap.path_side}
+                                "number": testTrap.line_order,
+                                "side": testTrap.path_side}
                                })
         response = self.app.put(trapUrl, data=jsonData, content_type="application/json")
         self.assertEqual(response.status_code, 400, "Wrong error code returned with non list for traps")
