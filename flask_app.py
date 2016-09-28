@@ -171,34 +171,34 @@ class TrapInterface(Resource):
         traps = []
         try:
             for trap_data in json_data['traps']:
-				if "id" in trap_data: # ID passed, edit parameters of trap
-					trap = sess.query(Trap).filter_by(id=trap_data['id']).first()
+                if "id" in trap_data: # ID passed, edit parameters of trap
+                    trap = sess.query(Trap).filter_by(id=trap_data['id']).first()
 
-					# Edit values apart of trap
-					trap.lat = trap_data['latitude']
-					trap.long = trap_data['longitude']
-					if "number" in trap_data:
-						trap.line_order = trap_data['number']
-					if "side" in trap_data:
-						trap.path_side = trap_data['side']
-					if "broken" in trap_data:
-						trap.broken = trap_data['broken']
-					if "moved" in trap_data:
-						trap.moved = trap_data['moved']
+                    # Edit values apart of trap
+                    trap.lat = trap_data['latitude']
+                    trap.long = trap_data['longitude']
+                    if "number" in trap_data:
+                        trap.line_order = trap_data['number']
+                    if "side" in trap_data:
+                        trap.path_side = trap_data['side']
+                    if "broken" in trap_data:
+                        trap.broken = trap_data['broken']
+                    if "moved" in trap_data:
+                        trap.moved = trap_data['moved']
 
-				else:  # Trap doesn't exist, create a new trap
-					trap = Trap(trap_data['rebait_time'],
-								trap_data['latitude'],
-								trap_data['longitude'],
-								trap_data['line_id'],
-								trap_data['number'],
-								trap_data['side'],
-								)
-					traps.append(trap)
-					sess.add(trap)
+                else:  # Trap doesn't exist, create a new trap
+                    trap = Trap(trap_data['rebait_time'],
+                                trap_data['latitude'],
+                                trap_data['longitude'],
+                                trap_data['line_id'],
+                                trap_data['number'],
+                                trap_data['side'],
+                                )
+                    traps.append(trap)
+                    sess.add(trap)
         except:
             return {"message": "could not enter trap into database (Missing key/failure to write)"}, 400
-            
+
         sess.commit()
         return {'result': [trap.getDict() for trap in traps]}, 201
 
