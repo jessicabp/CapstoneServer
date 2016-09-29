@@ -66,7 +66,7 @@ class TestLineInterface(unittest.TestCase):
 
     def testDelete(self):
         entiresBefore = len(flask_app.sess.query(Line).all())
-        jsonData = json.dumps({"line_id": 1, "password": "password"})
+        jsonData = json.dumps({"lineId": 1, "password": "password"})
         self.app.delete(lineUrl, data=jsonData, content_type="application/json")
         self.assertEqual(entiresBefore-1, len(flask_app.sess.query(Line).all()), "/line DELETE did not delete line")
 
@@ -99,13 +99,13 @@ class TestTrapInterface(unittest.TestCase):
 
     def testPut(self):
         entiresBefore = len(flask_app.sess.query(Trap).all())
-        jsonData = json.dumps({"line_id": 1,
+        jsonData = json.dumps({"lineId": 1,
                                "password": "password",
                                 "traps": [
-                                {"rebait_time": testTrap.rebait_time,
+                                {"rebaitTime": testTrap.rebait_time,
                                 "latitude": testTrap.lat,
                                 "longitude": testTrap.long,
-                                "line_id": testTrap.line_id,
+                                "lineId": testTrap.line_id,
                                 "number": testTrap.line_order,
                                 "side": testTrap.path_side}]
                                })
@@ -122,13 +122,13 @@ class TestTrapInterface(unittest.TestCase):
         self.assertEqual(trap.path_side, testTrap.path_side, "/trap path_side not stored correctly")
 
     def testPut_NonListFailure(self):
-        jsonData = json.dumps({"line_id": 1,
+        jsonData = json.dumps({"lineId": 1,
                                "password": "password",
                                 "traps":
-                                {"rebait_time": testTrap.rebait_time,
+                                {"rebaitTime": testTrap.rebait_time,
                                 "latitude": testTrap.lat,
                                 "longitude": testTrap.long,
-                                "line_id": testTrap.line_id,
+                                "lineId": testTrap.line_id,
                                 "number": testTrap.line_order,
                                 "side": testTrap.path_side}
                                })
@@ -137,20 +137,20 @@ class TestTrapInterface(unittest.TestCase):
         self.assertIn("non iterable datatype passed with traps", response.data.decode("utf-8"), "Wrong message given")
 
     def testPut_CantAuthenticateFailure(self):
-        jsonData = json.dumps({"line_id": 1, "password":"incorrect"})  # No password or traps given
+        jsonData = json.dumps({"lineId": 1, "password":"incorrect"})  # No password or traps given
         response = self.app.put(trapUrl, data=jsonData, content_type="application/json")
         self.assertEqual(response.status_code, 403, "Wrong error code returned with failure to authenticate")
         self.assertIn("could not validate password", response.data.decode("utf-8"), "Wrong message given")
 
     def testPut_MissingKeyFailure(self):
-        jsonData = json.dumps({"line_id": 1, "password":"password", "traps":[{"rebait_time": testTrap.rebait_time}]})
+        jsonData = json.dumps({"lineId": 1, "password":"password", "traps":[{"rebait_time": testTrap.rebait_time}]})
         response = self.app.put(trapUrl, data=jsonData, content_type="application/json")
         self.assertEqual(response.status_code, 400, "Wrong error code returned with missing key")
         self.assertIn("could not enter trap into database", response.data.decode("utf-8"), "Wrong message given")
 
     def testDelete(self):
         entiresBefore = len(flask_app.sess.query(Trap).all())
-        jsonData = json.dumps({"line_id": 1,
+        jsonData = json.dumps({"lineId": 1,
                            "password": "password",
                            "traps": [1,4]})
         self.app.delete(trapUrl, data=jsonData, content_type="application/json")
@@ -183,10 +183,10 @@ class TestCatchInterface(unittest.TestCase):
 
     def testPut(self):
         entiresBefore = len(flask_app.sess.query(Catch).all())
-        jsonData = json.dumps({"line_id": 1,
+        jsonData = json.dumps({"lineId": 1,
                                 "password": "password",
-                                "catches": [{"trap_id": testCatch.trap_id,
-                                            "animal_id": testCatch.animal_id,
+                                "catches": [{"trapId": testCatch.trap_id,
+                                            "animalId": testCatch.animal_id,
                                             "time": testCatch.time}]
                                 })
         response = self.app.put(catchUrl, data=jsonData, content_type="application/json")
@@ -199,10 +199,10 @@ class TestCatchInterface(unittest.TestCase):
         self.assertEqual(catch.time, testCatch.time, "/catch time not stored correctly")
 
     def testPut_NonListFailure(self):
-        jsonData = json.dumps({"line_id": 1,
+        jsonData = json.dumps({"lineId": 1,
                                 "password": "password",
-                                "catches": {"trap_id": testCatch.trap_id,
-                                            "animal_id": testCatch.animal_id,
+                                "catches": {"trapId": testCatch.trap_id,
+                                            "animalId": testCatch.animal_id,
                                             "time": testCatch.time}
                                 })
         response = self.app.put(catchUrl, data=jsonData, content_type="application/json")
@@ -210,13 +210,13 @@ class TestCatchInterface(unittest.TestCase):
         self.assertIn("non iterable datatype passed with catches", response.data.decode("utf-8"), "Wrong message given")
 
     def testPut_CantAuthenticateFailure(self):
-        jsonData = json.dumps({"line_id": 1, "password":"incorrect"})  # No password or traps given
+        jsonData = json.dumps({"lineId": 1, "password":"incorrect"})  # No password or traps given
         response = self.app.put(catchUrl, data=jsonData, content_type="application/json")
         self.assertEqual(response.status_code, 403, "Wrong error code returned with failure to authenticate")
         self.assertIn("could not validate password", response.data.decode("utf-8"), "Wrong message given")
 
     def testPut_MissingKeyFailure(self):
-        jsonData = json.dumps({"line_id": 1, "password":"password", "catches":[{"time": testCatch.time}]})
+        jsonData = json.dumps({"lineId": 1, "password":"password", "catches":[{"time": testCatch.time}]})
         response = self.app.put(catchUrl, data=jsonData, content_type="application/json")
         self.assertEqual(response.status_code, 400, "Wrong error code returned with missing key")
         self.assertIn("could not enter catch into database", response.data.decode("utf-8"), "Wrong message given")
@@ -243,7 +243,7 @@ class TestAnimalInterface(unittest.TestCase):
 
     def testPut(self):
         entiresBefore = len(flask_app.sess.query(Animal).all())
-        jsonData = json.dumps({"line_id": 1,
+        jsonData = json.dumps({"lineId": 1,
                                 "password": "password",
                                 "animals": [testAnimal1.name, testAnimal2.name]
                                 })
@@ -255,7 +255,7 @@ class TestAnimalInterface(unittest.TestCase):
         self.assertEqual(animal.name, testAnimal1.name, "/animal time not stored correctly")
 
     def testPut_NonListFailure(self):
-        jsonData = json.dumps({"line_id": 1,
+        jsonData = json.dumps({"lineId": 1,
                                 "password": "password",
                                 "animals": testAnimal1.name
                                 })
@@ -264,7 +264,7 @@ class TestAnimalInterface(unittest.TestCase):
         self.assertIn("non iterable datatype passed with catches", response.data.decode("utf-8"), "Wrong message given")
 
     def testPut_CantAuthenticateFailure(self):
-        jsonData = json.dumps({"line_id": 1,
+        jsonData = json.dumps({"lineId": 1,
                                 "password": "incorrect",
                                 "animals": [testAnimal1.name, testAnimal2.name]
                                 })
@@ -273,7 +273,7 @@ class TestAnimalInterface(unittest.TestCase):
         self.assertIn("could not validate password", response.data.decode("utf-8"), "Wrong message given")
 
     def testPut_MissingKeyFailure(self):
-        jsonData = json.dumps({"line_id": 1,
+        jsonData = json.dumps({"lineId": 1,
                                 "animals": [testAnimal1.name, testAnimal2.name]
                                 })
         response = self.app.put(animalUrl, data=jsonData, content_type="application/json")

@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block body %}
+    <h1>Traps in {{name}}</h1>
+    {% if traps %}
+        <table>
+        <tr>
+            <th class="left">Number</th>
+            <th class="left">Latitude</th>
+            <th class="left">Longitude</th>
+            <th class="left">Path Side</th>
+            <th class="left">Broken</th>
+            <th class="left">Moved</th>
+        </tr>
+
+        {% for trap in traps %}
+            <tr>
+                <td>{{trap.line_order}}</td>
+                <td>{{trap.lat}}</td>
+                <td>{{trap.long}}</td>
+                <td>{{trap.path_side}}</td>
+                <td>{{trap.broken}}</td>
+                <td>{{trap.moved}}</td>
+            </tr>
+        {% endfor %}
+        </table>
+    {% else %}
+        There are no traps currently on this line
+    {% endif %}
+{% endblock %}

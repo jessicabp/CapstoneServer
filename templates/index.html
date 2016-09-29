@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block body %}
+    <h1>Trap Tracker</h1>
+
+    <table>
+        <tr>
+            <th class="left">Line Name</th>
+            <th class="ten">Options</th>
+        </tr>
+
+    {% for line in lines %}
+        <tr>
+            <td>{{line.name}}</td>
+            <td>
+                <a href="/edit/{{line.id}}">Edit</a>
+                <a href="/catches/{{line.id}}">Catches</a>
+            </td>
+        </tr>
+    {% endfor %}
+    </table>
+
+{% endblock %}

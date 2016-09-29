@@ -53,4 +53,4 @@ def createHashLine(name, password):
 
 
 if __name__ == '__main__':
-    pushData("111")
+    pushData("1111")

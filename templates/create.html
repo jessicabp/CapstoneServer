@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block body %}
+    <h1>Create New Line</h1>
+    <form action="{{request.path}}" method="post">
+        <label for="name">Name</label><br>
+        <input type="text" id="name" name="name" placeholder="Name" /><br>
+
+        <br>
+        <label for="upassword">User Password</label><br>
+        <input type="password" id="uPassword" name="uPassword" placeholder="User Password" required /><br>
+        <input type="password" id="re_uPassword" name="re_uPassword" placeholder="Re-enter user password" required /><br>
+
+        <br>
+        <label for="apassword">Admin Password</label><br>
+        <input type="password" id="aPassword" name="aPassword" placeholder="Admin Password" required /><br>
+        <input type="password" id="re_aPassword" name="re_aPassword" placeholder="Re-enter admin Password" required /><br>
+
+        <input type="submit" value="Submit" />
+    </form>
+{% endblock %}

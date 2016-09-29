@@ -1,10 +1,11 @@
 from flask import Flask
-from flask import request
+from flask import request, url_for, redirect
 from flask_restful import Resource, Api
 import hashlib
 import os
 import binascii
 import logging
+import web_classes as wb
 import orm
 from orm import Line, Trap, Catch, Animal
 
@@ -91,14 +92,14 @@ class LineInterface(Resource):
 
         Content-type: application/json
         Payload:
-            - JSONObject: {"line_id": <int>,
+            - JSONObject: {"lineId": <int>,
                            "password": <string>}
 
         """
         json_data = request.get_json()
 
-        if authenticate(json_data['line_id'], json_data['password']):
-            sess.query(Line).filter_by(id = json_data['line_id']).delete()
+        if authenticate(json_data['lineId'], json_data['password']):
+            sess.query(Line).filter_by(id = json_data['lineId']).delete()
             sess.commit()
             return None, 201
         else:
@@ -117,10 +118,10 @@ class TrapInterface(Resource):
         Returns:
         - JSONObject: {'result': [Trap...]}
         - Trap Object: {'id': <int>,
-                        'rebait_time': <long int>,
+                        'rebaitTime': <long int>,
                         'latitude': <float>,
                         'longitude': <float>,
-                        'line_id': <int>,
+                        'lineId': <int>,
                         'number': <int>,
                         'side': <int>,
                         'broken': <boolean>,
@@ -143,14 +144,14 @@ class TrapInterface(Resource):
 
         Content-type: application/json
         Payload:
-            - JSONObject: {"line_id": <int>
+            - JSONObject: {"lineId": <int>
                            "password": <string>,
                            "traps": [Trap...]}
             - Trap Object: {'id': <int>, (Optional: if given, overrides set in database. If excluded, creates new line)
-                            'rebait_time': <long int>,
+                            'rebaitTime': <long int>,
                             'latitude': <float>,
                             'longitude': <float>,
-                            'line_id': <int>,
+                            'lineId': <int>,
                             'number': <int>,
                             'side': <int>,
                             'broken': <boolean>, (Optional on editing set, don't include if creating new trap)
@@ -162,7 +163,7 @@ class TrapInterface(Resource):
 
         json_data = request.get_json()
 
-        if not authenticate(json_data['line_id'], json_data['password']):
+        if not authenticate(json_data['lineId'], json_data['password']):
             return {"message": "could not validate password"}, 403
 
         if not isinstance(json_data['traps'], list):
@@ -187,10 +188,10 @@ class TrapInterface(Resource):
                         trap.moved = trap_data['moved']
 
                 else:  # Trap doesn't exist, create a new trap
-                    trap = Trap(trap_data['rebait_time'],
+                    trap = Trap(trap_data['rebaitTime'],
                                 trap_data['latitude'],
                                 trap_data['longitude'],
-                                trap_data['line_id'],
+                                trap_data['lineId'],
                                 trap_data['number'],
                                 trap_data['side'],
                                 )
@@ -208,17 +209,17 @@ class TrapInterface(Resource):
 
         Content-type: application/json
         Payload:
-            - JSONObject: {"line_id": <int>,
+            - JSONObject: {"lineId": <int>,
                            "password": <string>,
                            "traps": [<int>...]}
 
         """
         json_data = request.get_json()
-        if authenticate(json_data['line_id'], json_data['password']):
+        if authenticate(json_data['lineId'], json_data['password']):
             # Make sure they all belong to the same line
             traps = sess.query(Trap).filter(Trap.id.in_(json_data['traps'])).all()
             for trap in traps:
-                if trap.line_id != json_data['line_id']:
+                if trap.line_id != json_data['lineId']:
                     return {"message": "trap belongs to different line"}, 400
 
             # Delete traps
@@ -258,17 +259,17 @@ class CatchInterface(Resource):
 
         Content-type: application/json
         Payload:
-            JSONObject:   {"line_id": <int>
+            JSONObject:   {"lineId": <int>
                            "password": <string>,
                            "catches": [Catch...]}
             Catch Object: {'id': <int>, (Optional: if given, overrides set in database. If excluded, creates new line)
-                           'trap_id': <int>,
-                           'animal_id': <int>,
+                           'trapId': <int>,
+                           'animalId': <int>,
                            'time': <long int> (Ignored when overriding set in database)}
         """
         json_data = request.get_json()
 
-        if not authenticate(json_data['line_id'], json_data['password']):
+        if not authenticate(json_data['lineId'], json_data['password']):
             return {"message": "could not validate password"}, 403
 
         if not isinstance(json_data["catches"], list):
@@ -281,12 +282,12 @@ class CatchInterface(Resource):
                     catch = sess.query(Catch).filter_by(id=catch_data['id']).first()
 
                     #Edit values in catch
-                    catch.trap_id = catch_data['trap_id']
-                    catch.animal_id = catch_data['animal_id']
+                    catch.trap_id = catch_data['trapId']
+                    catch.animal_id = catch_data['animalId']
 
                 else: # ID not given, create new catch
-                    catch = Catch(catch_data['trap_id'],
-                                  catch_data['animal_id'],
+                    catch = Catch(catch_data['trapId'],
+                                  catch_data['animalId'],
                                   catch_data['time'])
                     catches.append(catch)
                     sess.add(catch)
@@ -322,14 +323,14 @@ class AnimalInterface(Resource):
 
         Content-type: application/json
         Payload:
-            JSONObject:   {"line_id": <int>
+            JSONObject:   {"lineId": <int>
                            "password": <string>,
                            "animals": [<string>...]}
         """
         json_data = request.get_json()
 
         try:
-            if not authenticate(json_data['line_id'], json_data['password']):
+            if not authenticate(json_data['lineId'], json_data['password']):
                 return {"message": "could not validate password"}, 403
 
             if not isinstance(json_data["animals"], list):
@@ -372,10 +373,33 @@ logging.basicConfig(
 )
 logging.getLogger('sqlalchemy.engine').setLevel(logging.WARN)
 
+
+# Link URL to classes
 api.add_resource(LineInterface, "/api/line")
 api.add_resource(TrapInterface, "/api/trap")
 api.add_resource(CatchInterface, "/api/catch")
 api.add_resource(AnimalInterface, "/api/animal")
+
+
+@app.route("/", methods=["GET"])
+def index():
+    return wb.index()
+
+
+@app.route("/create", methods=["GET", "POST"])
+def create():
+    return wb.createLine()
+
+
+@app.route("/catches/<int:number>", methods=["GET"])
+def catches(number):
+    return wb.catches(number)
+
+
+@app.route("/edit/<int:number>", methods=["GET"])
+def edit(number):
+    return wb.edit(number)
+
 
 if __name__ == '__main__':
     app.run(debug=False)

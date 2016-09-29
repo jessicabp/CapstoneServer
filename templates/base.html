@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="{{url_for('static', filename='styles.css')}}" media="all" />
+    <title>Trap Tracker</title>
+</head>
+<body>
+    <nav>
+        <ul>
+            <li><a href="/">Home</a></li>
+            <li><a href="{{url_for('create')}}">Create Line</a></li>
+        </ul>
+    </nav>
+    <main>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <h6 class="{{category}}">{{message}}</h6>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        {% block body %} {% endblock %}
+    </main>
+</body>
+</html>

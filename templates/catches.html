@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block body %}
+    <h1>Captures for {{name}}</h1>
+    {% if catches %}
+        <table>
+        <tr>
+            <th class="left">Time</th>
+            <th class="left">Trap ID</th>
+            <th class="left">Animal ID</th>
+        </tr>
+        {% for catch in catches %}
+            <tr>
+                <td>{{catch.time}}</td>
+                <td>{{catch.trap_id}}</td>
+                <td>{{catch.animal_id}}</td>
+            </tr>
+        {% endfor %}
+        </table>
+    {% else %}
+        No captures have been recorded for this line
+    {% endif %}
+{% endblock %}
