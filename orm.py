@@ -58,10 +58,10 @@ class Trap(Base):
 
     def getDict(self):
         return {'id': self.id,
-                'rebait_time': self.rebait_time,
+                'rebaitTime': self.rebait_time,
                 'latitude': self.lat,
                 'longitude': self.long,
-                'line_id': self.line_id,
+                'lineId': self.line_id,
                 'number': self.line_order,
                 'side': self.path_side,
                 'broken': self.broken,
@@ -87,8 +87,8 @@ class Catch(Base):
 
     def getDict(self):
         return {'id': self.id,
-                'trap_id': self.trap_id,
-                'animal_id': self.animal_id,
+                'trapId': self.trap_id,
+                'animalId': self.animal_id,
                 'time': self.time}
 
 
