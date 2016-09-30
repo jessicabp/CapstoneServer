@@ -81,6 +81,7 @@ class LineInterface(Resource):
                     lines.append(line)
                     sess.add(line)
         except:
+            sess.rollback()
             return {"message": "could not enter line into database (Missing key/failure to write)"}, 400
 
         sess.commit()
@@ -198,6 +199,7 @@ class TrapInterface(Resource):
                     traps.append(trap)
                     sess.add(trap)
         except:
+            sess.rollback()
             return {"message": "could not enter trap into database (Missing key/failure to write)"}, 400
 
         sess.commit()
@@ -292,6 +294,7 @@ class CatchInterface(Resource):
                     catches.append(catch)
                     sess.add(catch)
         except:
+            sess.rollback()
             return {"message": "could not enter catch into database (Missing key/failure to write)"}, 400
 
         sess.commit()
@@ -343,6 +346,7 @@ class AnimalInterface(Resource):
                     animals.append(animal)
                     sess.add(animal)
         except:
+            sess.rollback()
             return {"message": "could not enter catch into database (Missing key/failure to write)"}, 400
 
         sess.commit()
