@@ -38,7 +38,7 @@ class Trap(Base):
     long = Column(Float)
     line_id = Column(Integer, ForeignKey("line.id"))
     line_order = Column(Integer)
-    path_side = Column(Integer)
+    path_side = Column(Boolean)
     broken = Column(Boolean)
     moved = Column(Boolean)
 

@@ -124,7 +124,7 @@ class TrapInterface(Resource):
                         'longitude': <float>,
                         'lineId': <int>,
                         'number': <int>,
-                        'side': <int>,
+                        'side': <boolean>,
                         'broken': <boolean>,
                         'moved': <boolean>}
 
@@ -154,7 +154,7 @@ class TrapInterface(Resource):
                             'longitude': <float>,
                             'lineId': <int>,
                             'number': <int>,
-                            'side': <int>,
+                            'side': <boolean>,
                             'broken': <boolean>, (Optional on editing set, don't include if creating new trap)
                             'moved': <boolean> (Optional on editing set, don't include if creating new trap)}
 
