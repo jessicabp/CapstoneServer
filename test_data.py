@@ -4,11 +4,13 @@ Uploads a bunch of junk test data to the orm database
 import hashlib
 import os
 import binascii
-import flask_app as fa
+#import flask_app as fa
+import orm
 from orm import Line, Trap, Catch, Image, Animal
 
 
 def pushData(bitAdd):
+    sess = orm.get_session()
     dataList = []  # A list of all objects to add to the database
 
     if len(bitAdd) != 4 or bitAdd == "0000":
@@ -42,14 +44,14 @@ def pushData(bitAdd):
                          Animal("Cat")])
 
     for ob in dataList:
-        fa.sess.add(ob)
-    fa.sess.commit()
+        sess.add(ob)
+    sess.commit()
 
 
 def createHashLine(name, password):
     salt = os.urandom(40)
     hashed = hashlib.pbkdf2_hmac('sha1', str.encode(password), salt, 100000)
-    return Line(name, binascii.hexlify(hashed).decode("utf-8"), binascii.hexlify(salt))
+    return Line(name, binascii.hexlify(hashed).decode("utf-8"), binascii.hexlify(hashed).decode("utf-8"), binascii.hexlify(salt))
 
 
 if __name__ == '__main__':

@@ -16,11 +16,13 @@ class Line(Base):
     id = Column(Integer, primary_key=True)
     name = Column(String(80), unique=True)
     password_hashed = Column(String(40))
+    admin_password_hashed = Column(String(40))
     salt = Column(String(40))
 
-    def __init__(self, name, password, salt):
+    def __init__(self, name, password, admin_password, salt):
         self.name = name
         self.password_hashed = password
+        self.admin_password_hashed = admin_password
         self.salt = salt
 
     def __repr__(self):

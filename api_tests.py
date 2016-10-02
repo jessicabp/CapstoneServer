@@ -2,10 +2,11 @@ import unittest
 import flask_app
 import test_data
 import json
+import orm
 from orm import Line, Trap, Catch, Animal
 
 
-testLine = Line("Massey Uni Line", "1234", "")
+testLine = Line("Massey Uni Line", "1234", "5678", "")
 testTrap = Trap(1473431831, -40.310124, 175.777104, 1, 5, 1)
 testCatch = Catch(1, 1, 1473431831)
 testAnimal1 = Animal("Possom")
@@ -21,6 +22,9 @@ class TestLineInterface(unittest.TestCase):
     def setUp(self):
         flask_app.app.config["TESTING"] = True
         self.app = flask_app.app.test_client()
+        sess = orm.get_session()
+        sess.query(Line).delete()
+        sess.commit()
         test_data.pushData("1000")
 
     def tearDown(self):
@@ -43,7 +47,7 @@ class TestLineInterface(unittest.TestCase):
 
     def testPut(self):
         entiresBefore = len(flask_app.sess.query(Line).all())
-        jsonData = json.dumps([{"name": testLine.name, "password": testLine.password_hashed}])
+        jsonData = json.dumps([{"name": testLine.name, "password": testLine.password_hashed, "admin_password": testLine.password_hashed}])
         self.app.put(lineUrl, data=jsonData, content_type="application/json")
 
         # Test increase of one + data integrity of password

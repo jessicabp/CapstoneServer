@@ -52,7 +52,8 @@ class LineInterface(Resource):
             - JSONArray: [Line...]
             - Line Object: {"id": <int>, (Optional: if given, overrides set in database. If excluded, creates new line)
                             "name": <string>,
-                            "password": <string>}
+                            "password": <string>, (password for adding catches)
+                            "admin_password": <string> (password for editing trap, line data)}
 
         Example payload:
             [{"id":1, "name":"Foo", "password":"1234"}]
@@ -69,7 +70,7 @@ class LineInterface(Resource):
             for line_data in json_data:
                 if "id" in line_data: # ID passed, only edit name of new line
                     line = sess.query(Line).filter_by(id=line_data['id']).first()
-                    if not authenticate(line_data['id'], line_data['password']):
+                    if authenticate(line_data['id'], line_data['password']) < AUTH_LINE:
                         return {"message": "could not validate password"}, 403
 
                     line.name = line_data['name']
@@ -78,9 +79,11 @@ class LineInterface(Resource):
                     # Create salt and hash password
                     salt = os.urandom(40)
                     hashed = hashlib.pbkdf2_hmac('sha1', str.encode(line_data['password']), salt, 100000)
+                    admin_hashed = hashlib.pbkdf2_hmac('sha1', str.encode(line_data['admin_password']), salt, 100000)
 
                     # Create line and store in database
-                    line = Line(line_data['name'], binascii.hexlify(hashed).decode("utf-8"), binascii.hexlify(salt))
+                    line = Line(line_data['name'], binascii.hexlify(hashed).decode("utf-8"),
+                                binascii.hexlify(admin_hashed).decode("utf-8"), binascii.hexlify(salt))
                     lines.append(line)
                     sess.add(line)
         except:
@@ -102,7 +105,7 @@ class LineInterface(Resource):
         """
         json_data = request.get_json()
 
-        if authenticate(json_data['lineId'], json_data['password']):
+        if authenticate(json_data['lineId'], json_data['password']) >= AUTH_LINE:
             sess.query(Line).filter_by(id = json_data['lineId']).delete()
             sess.commit()
             return None, 201
@@ -167,7 +170,7 @@ class TrapInterface(Resource):
 
         json_data = request.get_json()
 
-        if not authenticate(json_data['lineId'], json_data['password']):
+        if authenticate(json_data['lineId'], json_data['password']) < AUTH_LINE:
             return {"message": "could not validate password"}, 403
 
         if not isinstance(json_data['traps'], list):
@@ -220,7 +223,7 @@ class TrapInterface(Resource):
 
         """
         json_data = request.get_json()
-        if authenticate(json_data['lineId'], json_data['password']):
+        if authenticate(json_data['lineId'], json_data['password']) >= AUTH_LINE:
             # Make sure they all belong to the same line
             traps = sess.query(Trap).filter(Trap.id.in_(json_data['traps'])).all()
             for trap in traps:
@@ -274,7 +277,7 @@ class CatchInterface(Resource):
         """
         json_data = request.get_json()
 
-        if not authenticate(json_data['lineId'], json_data['password']):
+        if authenticate(json_data['lineId'], json_data['password']) < AUTH_CATCH:
             return {"message": "could not validate password"}, 403
 
         if not isinstance(json_data["catches"], list):
@@ -336,7 +339,7 @@ class AnimalInterface(Resource):
         json_data = request.get_json()
 
         try:
-            if not authenticate(json_data['lineId'], json_data['password']):
+            if authenticate(json_data['lineId'], json_data['password']) < AUTH_CATCH:
                 return {"message": "could not validate password"}, 403
 
             if not isinstance(json_data["animals"], list):
@@ -356,6 +359,9 @@ class AnimalInterface(Resource):
         return {'result': [animal.getDict() for animal in animals]}, 201
 
 
+AUTH_NONE = 0
+AUTH_CATCH = 1
+AUTH_LINE = 2
 def authenticate(line_id, password):
     """
     Authenticate an inputed password by comparing the line_id hashed password against given password
@@ -363,6 +369,9 @@ def authenticate(line_id, password):
     Args:
         line_id -- Line id to compared hashed password stored in database to
         password -- Password to compared hashed password against
+
+    Returned:
+        Integer: level of authorisation, AUTH_NONE < AUTH_CATCH < AUTH_LINE
     """
     line = sess.query(Line).filter_by(id=line_id).first()
     if line is None:
@@ -370,7 +379,11 @@ def authenticate(line_id, password):
 
     hash_compare = hashlib.pbkdf2_hmac('sha1', str.encode(password), binascii.unhexlify(line.salt), 100000)
 
-    return binascii.hexlify(hash_compare).decode("utf-8") == line.password_hashed
+    if binascii.hexlify(hash_compare).decode("utf-8") == line.admin_password_hashed:
+        return AUTH_LINE
+    if binascii.hexlify(hash_compare).decode("utf-8") == line.password_hashed:
+        return AUTH_CATCH
+    return AUTH_NONE
 
 
 # Set up logging
