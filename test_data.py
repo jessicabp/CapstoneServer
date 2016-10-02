@@ -51,7 +51,7 @@ def pushData(bitAdd):
 def createHashLine(name, password):
     salt = os.urandom(40)
     hashed = hashlib.pbkdf2_hmac('sha1', str.encode(password), salt, 100000)
-    return Line(name, binascii.hexlify(hashed).decode("utf-8"), binascii.hexlify(hashed).decode("utf-8"), binascii.hexlify(salt))
+    return Line(name, binascii.hexlify(hashed).decode("utf-8"), binascii.hexlify(hashed).decode("utf-8"), binascii.hexlify(salt),1,2,3)
 
 
 if __name__ == '__main__':

@@ -15,21 +15,31 @@ class Line(Base):
     __tablename__ = 'line'
     id = Column(Integer, primary_key=True)
     name = Column(String(80), unique=True)
+    animal_1 = Column(Integer, ForeignKey("animal.id"))
+    animal_2 = Column(Integer, ForeignKey("animal.id"))
+    animal_3 = Column(Integer, ForeignKey("animal.id"))
     password_hashed = Column(String(40))
     admin_password_hashed = Column(String(40))
     salt = Column(String(40))
 
-    def __init__(self, name, password, admin_password, salt):
+    def __init__(self, name, password, admin_password, salt, animal_1, animal_2, animal_3):
         self.name = name
         self.password_hashed = password
         self.admin_password_hashed = admin_password
         self.salt = salt
+        self.animal_1 = animal_1
+        self.animal_2 = animal_2
+        self.animal_3 = animal_3
 
     def __repr__(self):
         return "<Line id:{} name:{}>".format(self.id, self.name)
 
     def getDict(self):
-        return {'id': self.id, 'name': self.name}
+        return {'id': self.id,
+                'name': self.name,
+                'animal_1': self.animal_1,
+                'animal_2': self.animal_2,
+                'animal_3': self.animal_3}
 
 
 class Trap(Base):

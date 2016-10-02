@@ -30,7 +30,10 @@ class LineInterface(Resource):
         Returns:
             - JSONObject: {"result": [Line...]}
             - Line Object: {"id": <int>,
-                            "name": <string>}
+                            "name": <string>,
+                            "animal_1: <int>,
+                            "animal_2: <int>,
+                            "animal_3: <int>}
 
         Example:
             - /line             ->  [{"id":1, "name":"Foo"}, {"id":2, "name":"Bar"}]
@@ -52,6 +55,9 @@ class LineInterface(Resource):
             - JSONArray: [Line...]
             - Line Object: {"id": <int>, (Optional: if given, overrides set in database. If excluded, creates new line)
                             "name": <string>,
+                            "animal_1: <int>,
+                            "animal_2: <int>,
+                            "animal_3: <int>,
                             "password": <string>, (password for adding catches)
                             "admin_password": <string> (password for editing trap, line data)}
 
@@ -83,7 +89,8 @@ class LineInterface(Resource):
 
                     # Create line and store in database
                     line = Line(line_data['name'], binascii.hexlify(hashed).decode("utf-8"),
-                                binascii.hexlify(admin_hashed).decode("utf-8"), binascii.hexlify(salt))
+                                binascii.hexlify(admin_hashed).decode("utf-8"), binascii.hexlify(salt),
+                                line_data['animal_1'], line_data['animal_2'], line_data['animal_3'])
                     lines.append(line)
                     sess.add(line)
         except:
