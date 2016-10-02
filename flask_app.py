@@ -9,7 +9,10 @@ import web_classes as wb
 import orm
 from orm import Line, Trap, Catch, Animal
 
+
+# Set up flask application with all plugins
 app = Flask(__name__)
+app.config["SECRET_KEY"] = b"w-X\xc2\xd3\xd3\xbd{+\x01\x82\xb0\x83'\xe0Dyk\xab\x98V\xf9\x1e}"
 api = Api(app)
 
 sess = orm.get_session()
@@ -369,6 +372,7 @@ def authenticate(line_id, password):
 
     return binascii.hexlify(hash_compare).decode("utf-8") == line.password_hashed
 
+
 # Set up logging
 logging.basicConfig(
     filename="server.log",
@@ -395,6 +399,11 @@ def create():
     return wb.createLine()
 
 
+@app.route("/login", methods=["GET", "POST"])
+def login():
+    return wb.login()
+
+
 @app.route("/catches/<int:number>", methods=["GET"])
 def catches(number):
     return wb.catches(number)
@@ -402,8 +411,13 @@ def catches(number):
 
 @app.route("/edit/<int:number>", methods=["GET"])
 def edit(number):
-    return wb.edit(number)
+    return wb.traps(number)
+
+
+@app.route("/export/<int:number>", methods=["GET"])
+def export(number):
+    return wb.export(number)
 
 
 if __name__ == '__main__':
-    app.run(debug=False)
+    app.run(debug=True)

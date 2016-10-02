@@ -28,12 +28,12 @@ def pushData(bitAdd):
 
     if bitAdd[2] == "1":
         dataList.extend([Catch(1, 1, 1474533347),
-                         Catch(6, 7, 1474544443),
+                         Catch(6, 3, 1474544443),
                          Catch(3, 1, 1474533375),
                          Catch(2, 4, 1474533379),
                          Catch(3, 2, 1474533385),
-                         Catch(6, 7, 1474544427),
-                         Catch(6, 7, 1474533391)])
+                         Catch(6, 2, 1474544427),
+                         Catch(6, 4, 1474533391)])
 
     if bitAdd[3] == "1":
         dataList.extend([Animal("Rat"),

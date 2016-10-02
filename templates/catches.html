@@ -4,18 +4,20 @@
     {% if catches %}
         <table>
         <tr>
-            <th class="left">Time</th>
-            <th class="left">Trap ID</th>
-            <th class="left">Animal ID</th>
+            <th class="left">Date</th>
+            <th class="left">Trap Number</th>
+            <th class="left">Animal</th>
         </tr>
         {% for catch in catches %}
             <tr>
-                <td>{{catch.time}}</td>
-                <td>{{catch.trap_id}}</td>
-                <td>{{catch.animal_id}}</td>
+                <td>{{datetime.fromtimestamp(catch[0].time).strftime("%d/%m/%y")}}</td>
+                <td>{{catch[1].line_order}}</td>
+                <td>{{catch[2].name}}</td>
             </tr>
         {% endfor %}
         </table>
+
+        <a class="button" href="/export/{{number}}">Export data</a>
     {% else %}
         No captures have been recorded for this line
     {% endif %}
