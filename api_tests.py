@@ -4,6 +4,7 @@ import test_data
 import json
 import orm
 from orm import Line, Trap, Catch, Animal
+from auth import authenticate, AUTH_NONE, AUTH_CATCH, AUTH_LINE
 
 
 testLine = Line("Massey Uni Line", "1234", "5678", "", 1, 2, 3)
@@ -25,11 +26,14 @@ class TestLineInterface(unittest.TestCase):
         sess = orm.get_session()
         sess.query(Line).delete()
         sess.commit()
+        sess.close()
         test_data.pushData("1000")
 
     def tearDown(self):
-        flask_app.sess.query(Line).delete()
-        flask_app.sess.commit()
+        sess = orm.get_session()
+        sess.query(Line).delete()
+        sess.commit()
+        sess.close()
 
     def testGet_Base(self):
         responseJSON = json.loads(self.app.get(lineUrl).data.decode("utf-8"))["result"]
@@ -46,16 +50,18 @@ class TestLineInterface(unittest.TestCase):
         self.assertEqual(responseJSON[0]['id'], 2, "/line?name incorrect id returned")
 
     def testPut(self):
-        entiresBefore = len(flask_app.sess.query(Line).all())
+        sess = orm.get_session()
+        entiresBefore = len(sess.query(Line).all())
         jsonData = json.dumps([{"name": testLine.name, "password": testLine.password_hashed, "admin_password": testLine.password_hashed,
                                 "animal_1": 1, "animal_2": 2, "animal_3": 3}])
         self.app.put(lineUrl, data=jsonData, content_type="application/json")
 
         # Test increase of one + data integrity of password
-        self.assertEqual(entiresBefore+1, len(flask_app.sess.query(Line).all()), "/line did not add testLine")
-        line = flask_app.sess.query(Line).filter_by(id=3).first()
+        self.assertEqual(entiresBefore+1, len(sess.query(Line).all()), "/line did not add testLine")
+        line = sess.query(Line).filter_by(id=3).first()
         self.assertEqual(line.name, testLine.name, "/line name not stored correctly")
-        self.assertTrue(flask_app.authenticate(line.id, testLine.password_hashed), "/line password could not validate")
+        self.assertTrue(authenticate(line.id, testLine.password_hashed)>=AUTH_LINE, "/line password could not validate")
+        sess.close()
 
     def testPut_NonListFailure(self):
         jsonData = json.dumps({"name": testLine.name, "password": testLine.password_hashed})
@@ -70,10 +76,12 @@ class TestLineInterface(unittest.TestCase):
         self.assertIn("could not enter line into database", response.data.decode("utf-8"), "Wrong message given")
 
     def testDelete(self):
-        entiresBefore = len(flask_app.sess.query(Line).all())
+        sess = orm.get_session()
+        entiresBefore = len(sess.query(Line).all())
         jsonData = json.dumps({"lineId": 1, "password": "password"})
         self.app.delete(lineUrl, data=jsonData, content_type="application/json")
-        self.assertEqual(entiresBefore-1, len(flask_app.sess.query(Line).all()), "/line DELETE did not delete line")
+        self.assertEqual(entiresBefore-1, len(sess.query(Line).all()), "/line DELETE did not delete line")
+        sess.close()
 
 
 class TestTrapInterface(unittest.TestCase):
@@ -83,9 +91,11 @@ class TestTrapInterface(unittest.TestCase):
         test_data.pushData("1100")
 
     def tearDown(self):
-        flask_app.sess.query(Line).delete()
-        flask_app.sess.query(Trap).delete()
-        flask_app.sess.commit()
+        sess = orm.get_session()
+        sess.query(Line).delete()
+        sess.query(Trap).delete()
+        sess.commit()
+        sess.close()
 
     def testGet_Base(self):
         responseJSON = json.loads(self.app.get(trapUrl).data.decode("utf-8"))["result"]
@@ -103,7 +113,8 @@ class TestTrapInterface(unittest.TestCase):
         self.assertEqual(responseJSON[0]['number'], 4, "/trap?trap_id returned incorrect line_order")
 
     def testPut(self):
-        entiresBefore = len(flask_app.sess.query(Trap).all())
+        sess = orm.get_session()
+        entiresBefore = len(sess.query(Trap).all())
         jsonData = json.dumps({"lineId": 1,
                                "password": "password",
                                 "traps": [
@@ -117,14 +128,15 @@ class TestTrapInterface(unittest.TestCase):
         response = self.app.put(trapUrl, data=jsonData, content_type="application/json")
 
         # Test increase of one + data integrity of all data passed
-        self.assertEqual(entiresBefore+1, len(flask_app.sess.query(Trap).all()), "/trap did not add testTrap")
-        trap = flask_app.sess.query(Trap).filter_by(id=7).first()
+        self.assertEqual(entiresBefore+1, len(sess.query(Trap).all()), "/trap did not add testTrap")
+        trap = sess.query(Trap).filter_by(id=7).first()
         self.assertEqual(trap.rebait_time, testTrap.rebait_time, "/trap rebait_time not stored correctly")
         self.assertEqual(trap.lat, testTrap.lat, "/trap lat not stored correctly")
         self.assertEqual(trap.long, testTrap.long, "/trap long not stored correctly")
         self.assertEqual(trap.line_id, testTrap.line_id, "/trap line_id not stored correctly")
         self.assertEqual(trap.line_order, testTrap.line_order, "/trap line_order not stored correctly")
         self.assertEqual(trap.path_side, testTrap.path_side, "/trap path_side not stored correctly")
+        sess.close()
 
     def testPut_NonListFailure(self):
         jsonData = json.dumps({"lineId": 1,
@@ -154,12 +166,14 @@ class TestTrapInterface(unittest.TestCase):
         self.assertIn("could not enter trap into database", response.data.decode("utf-8"), "Wrong message given")
 
     def testDelete(self):
-        entiresBefore = len(flask_app.sess.query(Trap).all())
+        sess = orm.get_session()
+        entiresBefore = len(sess.query(Trap).all())
         jsonData = json.dumps({"lineId": 1,
                            "password": "password",
                            "traps": [1,4]})
         self.app.delete(trapUrl, data=jsonData, content_type="application/json")
-        self.assertEqual(entiresBefore-2, len(flask_app.sess.query(Trap).all()), "/trap DELETE did not delete traps")
+        self.assertEqual(entiresBefore-2, len(sess.query(Trap).all()), "/trap DELETE did not delete traps")
+        sess.close()
 
 
 class TestCatchInterface(unittest.TestCase):
@@ -169,10 +183,12 @@ class TestCatchInterface(unittest.TestCase):
         test_data.pushData("1110")
 
     def tearDown(self):
-        flask_app.sess.query(Line).delete()
-        flask_app.sess.query(Trap).delete()
-        flask_app.sess.query(Catch).delete()
-        flask_app.sess.commit()
+        sess = orm.get_session()
+        sess.query(Line).delete()
+        sess.query(Trap).delete()
+        sess.query(Catch).delete()
+        sess.commit()
+        sess.close()
 
     def testGet_Base(self):
         responseJSON = json.loads(self.app.get(catchUrl).data.decode("utf-8"))["result"]
@@ -187,7 +203,8 @@ class TestCatchInterface(unittest.TestCase):
         self.assertEqual(len(responseJSON), 3, "/catch?trap_id not returning correct amount")
 
     def testPut(self):
-        entiresBefore = len(flask_app.sess.query(Catch).all())
+        sess = orm.get_session()
+        entiresBefore = len(sess.query(Catch).all())
         jsonData = json.dumps({"lineId": 1,
                                 "password": "password",
                                 "catches": [{"trapId": testCatch.trap_id,
@@ -197,11 +214,12 @@ class TestCatchInterface(unittest.TestCase):
         response = self.app.put(catchUrl, data=jsonData, content_type="application/json")
 
         # Test increase of one + data integrity of all data passed
-        self.assertEqual(entiresBefore+1, len(flask_app.sess.query(Catch).all()))
-        catch = flask_app.sess.query(Catch).filter_by(id=8).first()
+        self.assertEqual(entiresBefore+1, len(sess.query(Catch).all()))
+        catch = sess.query(Catch).filter_by(id=8).first()
         self.assertEqual(catch.trap_id, testCatch.trap_id, "/catch trap_id not stored correctly")
         self.assertEqual(catch.animal_id, testCatch.animal_id, "/catch animal_id not stored correctly")
         self.assertEqual(catch.time, testCatch.time, "/catch time not stored correctly")
+        sess.close()
 
     def testPut_NonListFailure(self):
         jsonData = json.dumps({"lineId": 1,
@@ -237,9 +255,11 @@ class TestAnimalInterface(unittest.TestCase):
         test_data.pushData("1001")
 
     def tearDown(self):
-        flask_app.sess.query(Line).delete()
-        flask_app.sess.query(Animal).delete()
-        flask_app.sess.commit()
+        sess = orm.get_session()
+        sess.query(Line).delete()
+        sess.query(Animal).delete()
+        sess.commit()
+        sess.close()
 
     def testGet_Base(self):
         responseJSON = json.loads(self.app.get(animalUrl).data.decode("utf-8"))["result"]
@@ -250,7 +270,8 @@ class TestAnimalInterface(unittest.TestCase):
         self.assertEqual(len(responseJSON), 1, "/animal?line_id not returning correct amount")
 
     def testPut(self):
-        entiresBefore = len(flask_app.sess.query(Animal).all())
+        sess = orm.get_session()
+        entiresBefore = len(sess.query(Animal).all())
         jsonData = json.dumps({"lineId": 1,
                                 "password": "password",
                                 "animals": [testAnimal1.name, testAnimal2.name]
@@ -258,9 +279,10 @@ class TestAnimalInterface(unittest.TestCase):
         response = self.app.put(animalUrl, data=jsonData, content_type="application/json")
 
         # Test increase of one + data integrity of all data passed
-        self.assertEqual(entiresBefore+2, len(flask_app.sess.query(Animal).all()))
-        animal = flask_app.sess.query(Animal).filter_by(id=5).first()
+        self.assertEqual(entiresBefore+2, len(sess.query(Animal).all()))
+        animal = sess.query(Animal).filter_by(id=5).first()
         self.assertEqual(animal.name, testAnimal1.name, "/animal time not stored correctly")
+        sess.close()
 
     def testPut_NonListFailure(self):
         jsonData = json.dumps({"lineId": 1,
