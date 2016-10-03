@@ -53,7 +53,7 @@ class TestLineInterface(unittest.TestCase):
         sess = orm.get_session()
         entiresBefore = len(sess.query(Line).all())
         jsonData = json.dumps([{"name": testLine.name, "password": testLine.password_hashed, "admin_password": testLine.password_hashed,
-                                "animal_1": 1, "animal_2": 2, "animal_3": 3}])
+                                "animal1": 1, "animal2": 2, "animal3": 3}])
         self.app.put(lineUrl, data=jsonData, content_type="application/json")
 
         # Test increase of one + data integrity of password
@@ -180,6 +180,12 @@ class TestCatchInterface(unittest.TestCase):
     def setUp(self):
         flask_app.app.config["TESTING"] = True
         self.app = flask_app.app.test_client()
+        sess = orm.get_session()
+        sess.query(Line).delete()
+        sess.query(Trap).delete()
+        sess.query(Catch).delete()
+        sess.commit()
+        sess.close()
         test_data.pushData("1110")
 
     def tearDown(self):

@@ -37,9 +37,9 @@ class Line(Base):
     def getDict(self):
         return {'id': self.id,
                 'name': self.name,
-                'animal_1': self.animal_1,
-                'animal_2': self.animal_2,
-                'animal_3': self.animal_3}
+                'animal1': self.animal_1,
+                'animal2': self.animal_2,
+                'animal3': self.animal_3}
 
 
 class Trap(Base):
