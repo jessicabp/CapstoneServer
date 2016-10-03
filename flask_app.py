@@ -197,8 +197,6 @@ class TrapInterface(Resource):
                             trap.line_order = trap_data['number']
                         if "side" in trap_data:
                             trap.path_side = trap_data['side']
-                    else:
-                        return {"message": "could not validate admin password"}, 403
                     if "broken" in trap_data:
                         trap.broken = trap_data['broken']
                     if "moved" in trap_data:
