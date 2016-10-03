@@ -177,7 +177,7 @@ class TrapInterface(Resource):
 
         json_data = request.get_json()
 
-        if authenticate(json_data['lineId'], json_data['password']) < AUTH_LINE:
+        if authenticate(json_data['lineId'], json_data['password']) < AUTH_CATCH:
             return {"message": "could not validate password"}, 403
 
         if not isinstance(json_data['traps'], list):
@@ -189,28 +189,34 @@ class TrapInterface(Resource):
                 if "id" in trap_data: # ID passed, edit parameters of trap
                     trap = sess.query(Trap).filter_by(id=trap_data['id']).first()
 
-                    # Edit values apart of trap
-                    trap.lat = trap_data['latitude']
-                    trap.long = trap_data['longitude']
-                    if "number" in trap_data:
-                        trap.line_order = trap_data['number']
-                    if "side" in trap_data:
-                        trap.path_side = trap_data['side']
+                    # Edit values apart of trap (some entries require additional auth)
+                    if authenticate(json_data['lineId'], json_data['password']) >= AUTH_LINE:
+                        trap.lat = trap_data['latitude']
+                        trap.long = trap_data['longitude']
+                        if "number" in trap_data:
+                            trap.line_order = trap_data['number']
+                        if "side" in trap_data:
+                            trap.path_side = trap_data['side']
+                    else:
+                        return {"message": "could not validate admin password"}, 403
                     if "broken" in trap_data:
                         trap.broken = trap_data['broken']
                     if "moved" in trap_data:
                         trap.moved = trap_data['moved']
 
-                else:  # Trap doesn't exist, create a new trap
-                    trap = Trap(trap_data['rebaitTime'],
-                                trap_data['latitude'],
-                                trap_data['longitude'],
-                                trap_data['lineId'],
-                                trap_data['number'],
-                                trap_data['side'],
-                                )
-                    traps.append(trap)
-                    sess.add(trap)
+                else:  # Trap doesn't exist, create a new trap (adding requires line level auth)
+                    if authenticate(json_data['lineId'], json_data['password']) >= AUTH_LINE:
+                        trap = Trap(trap_data['rebaitTime'],
+                                    trap_data['latitude'],
+                                    trap_data['longitude'],
+                                    trap_data['lineId'],
+                                    trap_data['number'],
+                                    trap_data['side'],
+                                    )
+                        traps.append(trap)
+                        sess.add(trap)
+                    else:
+                        return {"message": "could not validate admin password"}, 403
         except:
             sess.rollback()
             return {"message": "could not enter trap into database (Missing key/failure to write)"}, 400
