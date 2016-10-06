@@ -1,7 +1,8 @@
 from flask import render_template, request, redirect, url_for, send_file, flash
-import orm
-from orm import Line, Trap, Catch, Animal
-from auth import authenticate, AUTH_NONE, AUTH_CATCH, AUTH_LINE
+import traptracker.orm as orm
+from traptracker import app
+from traptracker.orm import Line, Trap, Catch, Animal
+from traptracker.auth import authenticate, AUTH_NONE, AUTH_CATCH, AUTH_LINE
 from flask_googlemaps import Map
 from datetime import datetime
 import os
@@ -11,23 +12,29 @@ from io import BytesIO
 import xlsxwriter
 
 
+@app.route("/", methods=["GET"])
 def index():
     sess = orm.get_session()
     result = render_template("index.html", lines=sess.query(Line).all())
     sess.close()
     return result
 
+
+@app.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
         return "Test" # Obv not going to be here, TODO: Log in users
     else:
         return render_template("login.html")
 
+
+@app.route("/about", methods=["GET"])
 def about():
     return render_template("about.html")
 
 
-def createLine():
+@app.route("/create", methods=["GET", "POST"])
+def create():
     if request.method == "POST":
         form = request.form
         if form["uPassword"] == form["re_uPassword"] and form["aPassword"] == form["re_aPassword"]:
@@ -51,6 +58,8 @@ def createLine():
     else:
         return render_template("create.html")
 
+
+@app.route("/catches/<int:number>", methods=["GET"])
 def catches(number):
     sess = orm.get_session()
     result = render_template("catches.html",
@@ -61,6 +70,8 @@ def catches(number):
     sess.close()
     return result
 
+
+@app.route("/edit/<int:number>", methods=["GET"])
 def traps(number):
     sess = orm.get_session()
     trapData = sess.query(Trap).filter_by(line_id=number).all()
@@ -92,6 +103,8 @@ def traps(number):
     sess.close()
     return result
 
+
+@app.route("/export/<int:number>", methods=["GET"])
 def export(number):
     sess = orm.get_session()
     catchData = sess.query(Catch, Trap, Animal).join(Trap).join(Animal).\

@@ -4,9 +4,8 @@ Uploads a bunch of junk test data to the orm database
 import hashlib
 import os
 import binascii
-#import flask_app as fa
-import orm
-from orm import Line, Trap, Catch, Image, Animal
+import traptracker.orm as orm
+from traptracker.orm import Line, Trap, Catch, Animal
 
 
 def pushData(bitAdd):
@@ -17,8 +16,8 @@ def pushData(bitAdd):
         return None
 
     if bitAdd[0] == "1":
-        dataList.extend([createHashLine("Manatawu Gorge","password"),
-                         createHashLine("Kaimais","UPPERCASE")])
+        dataList.extend([createHashLine("Manatawu Gorge", "password"),
+                         createHashLine("Kaimais", "UPPERCASE")])
 
     if bitAdd[1] == "1":
         dataList.extend([Trap(1474530992, -40.311121, 175.777068, 1, 1, 1),

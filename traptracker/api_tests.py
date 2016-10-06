@@ -1,10 +1,10 @@
 import unittest
-import flask_app
-import test_data
+from traptracker import app
+import traptracker.test_data as test_data
 import json
-import orm
-from orm import Line, Trap, Catch, Animal
-from auth import authenticate, AUTH_NONE, AUTH_CATCH, AUTH_LINE
+import traptracker.orm as orm
+from traptracker.orm import Line, Trap, Catch, Animal
+from traptracker.auth import authenticate, AUTH_NONE, AUTH_CATCH, AUTH_LINE
 
 
 testLine = Line("Massey Uni Line", "1234", "5678", "", 1, 2, 3)
@@ -21,8 +21,8 @@ animalUrl = "/api/animal"
 
 class TestLineInterface(unittest.TestCase):
     def setUp(self):
-        flask_app.app.config["TESTING"] = True
-        self.app = flask_app.app.test_client()
+        app.config["TESTING"] = True
+        self.app = app.test_client()
         sess = orm.get_session()
         sess.query(Line).delete()
         sess.commit()
@@ -86,8 +86,8 @@ class TestLineInterface(unittest.TestCase):
 
 class TestTrapInterface(unittest.TestCase):
     def setUp(self):
-        flask_app.app.config["TESTING"] = True
-        self.app = flask_app.app.test_client()
+        app.config["TESTING"] = True
+        self.app = app.test_client()
         test_data.pushData("1100")
 
     def tearDown(self):
@@ -98,8 +98,8 @@ class TestTrapInterface(unittest.TestCase):
         sess.close()
 
     def testGet_Base(self):
-        responseJSON = json.loads(self.app.get(trapUrl).data.decode("utf-8"))["result"]
-        self.assertEqual(len(responseJSON), 6, "/trap not returning correct amount with base query")
+        responseJSON = json.loads(self.app.get(trapUrl).data.decode("utf-8"))["message"]
+        self.assertEqual(responseJSON, "no argument given", "Incorrect response returned")
 
     def testGet_LineQuery(self):
         responseJSON = json.loads(self.app.get(trapUrl+ "?line_id=1").data.decode("utf-8"))["result"]
@@ -178,8 +178,8 @@ class TestTrapInterface(unittest.TestCase):
 
 class TestCatchInterface(unittest.TestCase):
     def setUp(self):
-        flask_app.app.config["TESTING"] = True
-        self.app = flask_app.app.test_client()
+        app.config["TESTING"] = True
+        self.app = app.test_client()
         sess = orm.get_session()
         sess.query(Line).delete()
         sess.query(Trap).delete()
@@ -197,8 +197,8 @@ class TestCatchInterface(unittest.TestCase):
         sess.close()
 
     def testGet_Base(self):
-        responseJSON = json.loads(self.app.get(catchUrl).data.decode("utf-8"))["result"]
-        self.assertEqual(len(responseJSON), 7, "/catch not returning correct amount with base query")
+        responseJSON = json.loads(self.app.get(catchUrl).data.decode("utf-8"))["message"]
+        self.assertEqual(responseJSON, "no argument given", "Incorrect response returned")
 
     def testGet_LineQuery(self):
         responseJSON = json.loads(self.app.get(catchUrl + "?line_id=2").data.decode("utf-8"))["result"]
@@ -253,8 +253,8 @@ class TestCatchInterface(unittest.TestCase):
 
 class TestAnimalInterface(unittest.TestCase):
     def setUp(self):
-        flask_app.app.config["TESTING"] = True
-        self.app = flask_app.app.test_client()
+        app.config["TESTING"] = True
+        self.app = app.test_client()
         sess = orm.get_session()
         sess.query(Animal).delete()
         sess.commit()

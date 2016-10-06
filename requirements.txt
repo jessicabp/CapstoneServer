@@ -1,2 +1,4 @@
 Flask-SQLAlchemy
 flask-restful
+flask-googlemaps
+xlsxwriter

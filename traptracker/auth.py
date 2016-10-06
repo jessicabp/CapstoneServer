@@ -1,7 +1,7 @@
 import hashlib
 import binascii
-import orm
-from orm import Line
+import traptracker.orm as orm
+from traptracker.orm import Line
 
 AUTH_NONE = 0
 AUTH_CATCH = 1

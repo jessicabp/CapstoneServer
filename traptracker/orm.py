@@ -3,7 +3,6 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-import logging
 
 SQLALCHEMY_DATABASE_URI = "sqlite:///traptracker.db"
 
