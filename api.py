@@ -140,6 +140,8 @@ class TrapInterface(Resource):
         """
 
         args = request.args
+        if not args:
+            return {"message": "no argument given"}, 404
         result = sess.query(Trap)
         if 'line_id' in args: result = result.filter_by(line_id=args['line_id'])
         if 'trap_id' in args: result = result.filter_by(id=args['trap_id'])
@@ -259,6 +261,8 @@ class CatchInterface(Resource):
                            'time': <long int>}
         """
         args = request.args
+        if not args:
+            return {"message": "no argument given"}, 404
         result = sess.query(Catch)
         if 'line_id' in args: result = result.join(Trap).filter(Trap.line_id == args['line_id'])
         if 'trap_id' in args: result = result.filter_by(trap_id=args['trap_id'])

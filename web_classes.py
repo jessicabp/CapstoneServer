@@ -1,11 +1,14 @@
-from flask import render_template, request, redirect, url_for, make_response, flash
+from flask import render_template, request, redirect, url_for, send_file, flash
 import orm
 from orm import Line, Trap, Catch, Animal
 from auth import authenticate, AUTH_NONE, AUTH_CATCH, AUTH_LINE
+from flask_googlemaps import Map
 from datetime import datetime
 import os
 import binascii
 import hashlib
+from io import BytesIO
+import xlsxwriter
 
 
 def index():
@@ -19,6 +22,9 @@ def login():
         return "Test" # Obv not going to be here, TODO: Log in users
     else:
         return render_template("login.html")
+
+def about():
+    return render_template("about.html")
 
 
 def createLine():
@@ -57,25 +63,67 @@ def catches(number):
 
 def traps(number):
     sess = orm.get_session()
-    result = render_template("traps.html", traps=sess.query(Trap).filter_by(line_id=number).all(),
+    trapData = sess.query(Trap).filter_by(line_id=number).all()
+
+    avgLat, avgLong = 0, 0
+    for trap in trapData:
+        avgLat += trap.lat
+        avgLong += trap.long
+
+    avgLat /= len(trapData)
+    avgLong /= len(trapData)
+
+    map = Map(
+        identifier="map",
+        lat = avgLat,
+        lng = avgLong,
+        style="height:400px;width:400px;margin:0;float=right;",
+        markers=[
+          { 'icon': 'http://maps.google.com/mapfiles/ms/icons/blue-dot.png',
+            'lat': trap.lat,
+            'lng': trap.long,
+            'infobox': "Number: {}".format(trap.line_order)
+          } for trap in trapData
+        ]
+    )
+
+    result = render_template("traps.html", traps=trapData, map=map,
                            name=sess.query(Line).filter_by(id=number).first().name)
     sess.close()
     return result
 
 def export(number):
     sess = orm.get_session()
-    catchData = sess.query(Catch, Trap, Animal).join(Trap).join(Animal).filter(Trap.line_id == number).all()
-    exportData = ["Trap Number,Animal,Time"]
+    catchData = sess.query(Catch, Trap, Animal).join(Trap).join(Animal).\
+        filter(Trap.line_id == number).order_by(Catch.time.asc()).all()
 
     # Convert data into csv format
+
+    # Create xlsx writer and byte stream
+    output = BytesIO()
+    workbook = xlsxwriter.Workbook(output, {'in_memory': True})
+    worksheet = workbook.add_worksheet()
+
+    # Create formats
+    boldFormat = workbook.add_format({'bold': True})
+    dateFormat = workbook.add_format({'num_format': 'dd/mm/yy'})
+
+    row = 1
+    col = 0
+
+    # Write headers
+    worksheet.write('A1', 'Number', boldFormat)
+    worksheet.write('B1', 'Animal', boldFormat)
+    worksheet.write('C1', 'Date', boldFormat)
+
+    # Write data into table
     for catch in catchData:
-        exportData.append("{},{},{}".format(catch[1].line_order,
-                                            catch[2].name,
-                                            datetime.fromtimestamp(catch[0].time).strftime("%d/%m/%y") ))
+        worksheet.write(row, col, catch[1].line_order)
+        worksheet.write(row, col+1, catch[2].name)
+        worksheet.write(row, col+2, datetime.fromtimestamp(catch[0].time), dateFormat)
+        row += 1
 
-    # Make response that downloads and saves locally for user
-    response = make_response("\n".join(exportData))
-    response.headers["Content-Disposition"] = "attachment; filename=captures.csv"
-    sess.close()
-    return response
-
+    # Wrap up and return file
+    workbook.close()
+    output.seek(0)
+    return send_file(output, attachment_filename="caputres.xlsx", as_attachment="True")

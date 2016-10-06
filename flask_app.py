@@ -1,20 +1,18 @@
 from flask import Flask
-from flask import request, url_for, redirect
-from flask_restful import Resource, Api
-import hashlib
-import os
-import binascii
+from flask_googlemaps import GoogleMaps
+from flask_restful import Api
 import logging
 import web_classes as wb
 from api import LineInterface, TrapInterface, AnimalInterface, CatchInterface
-import orm
-from orm import Line, Trap, Catch, Animal
-
 
 # Set up flask application with all plugins
 app = Flask(__name__)
 app.config["SECRET_KEY"] = b"w-X\xc2\xd3\xd3\xbd{+\x01\x82\xb0\x83'\xe0Dyk\xab\x98V\xf9\x1e}"
 api = Api(app)
+
+# Google Maps
+app.config['GOOGLEMAPS_KEY'] = "AIzaSyBcOWrE3u1z01r0XSysaZhQq_G1oz0oJps"
+GoogleMaps(app)
 
 # Set up logging
 logging.basicConfig(
@@ -40,6 +38,11 @@ def index():
 @app.route("/create", methods=["GET", "POST"])
 def create():
     return wb.createLine()
+
+
+@app.route("/about", methods=["GET"])
+def about():
+    return wb.about()
 
 
 @app.route("/login", methods=["GET", "POST"])

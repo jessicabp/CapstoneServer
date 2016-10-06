@@ -4,27 +4,69 @@
     {% if traps %}
         <table>
         <tr>
+            <th hidden>ID</th>
             <th class="left">Number</th>
             <th class="left">Latitude</th>
             <th class="left">Longitude</th>
             <th class="left">Path Side</th>
             <th class="left">Broken</th>
             <th class="left">Moved</th>
-            <th class="left">Edit</th>
+            <th class="left"></th>
         </tr>
 
         {% for trap in traps %}
             <tr>
-                <td>{{trap.line_order}}</td>
-                <td>{{trap.lat}}</td>
-                <td>{{trap.long}}</td>
-                <td>{{trap.path_side}}</td>
-                <td>{{trap.broken}}</td>
-                <td>{{trap.moved}}</td>
-                <td>Edit</td>
+                <td class="id" hidden>{{trap.id}}</td>
+                <td class="number">{{trap.line_order}}</td>
+                <td class="latitude">{{trap.lat}}</td>
+                <td class="longitude">{{trap.long}}</td>
+                {% if trap.path_side == true  %}
+                    <td class="path_side">Left</td>
+                {% else %}
+                    <td class="path_side">Right</td>
+                {% endif %}
+                </td>
+                <td class="broken">{{trap.broken}}</td>
+                <td class="moved">{{trap.moved}}</td>
+                <td class="edit" style="cursor:pointer;">Edit</td>
             </tr>
         {% endfor %}
         </table>
+
+        <form action="{{ request.path }}" method="post">
+            <input type="hidden" id="eid" name="eid" value="" />
+            Number
+            <input type="text" id="enumber" name="enumber" placeholder="number" /><br>
+            Latitude
+            <input type="text" id="elatitude" name="elatitude" placeholder="latitude" /><br>
+            Longitude
+            <input type="text" id="elongitude" name="elongitude" placeholder="longitude" /><br>
+            Path Side
+            <input type="text" id="epath_side" name="epath_side" placeholder="path_side" /><br>
+            <input type="checkbox" id="ebroken" name="ebroken" />Broken<br>
+            <input type="checkbox" id="emoved" name="emoved" />Moved<br>
+            <input type="submit" value="Submit" />
+        </form>
+
+        <script>
+            var edit_row = document.querySelectorAll('.edit');
+            for (var i=0; i<edit_row.length; i++) {
+                edit_row[i].addEventListener('click', function(e) {
+                    var parent = this.parentNode;
+                    document.getElementById('eid').value = parent.querySelector('.id').innerHTML
+                    document.getElementById('enumber').value = parent.querySelector('.number').innerHTML;
+                    document.getElementById('elatitude').value = parent.querySelector('.latitude').innerHTML;
+                    document.getElementById('elongitude').value = parent.querySelector('.longitude').innerHTML;
+                    document.getElementById('epath_side').value = parent.querySelector('.path_side').innerHTML;
+                    document.getElementById('ebroken').checked = parent.querySelector('.broken').innerHTML == "True";
+                    document.getElementById('emoved').checked = parent.querySelector('.moved').innerHTML == "True";
+                })
+            }
+        </script>
+
+        {{ map.js }}
+        {{ map.html }}
+
     {% else %}
         There are no traps currently on this line
     {% endif %}
