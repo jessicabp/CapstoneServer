@@ -3,14 +3,31 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
+from flask_login import UserMixin
+
+import hashlib
+import binascii
+import os
 
 SQLALCHEMY_DATABASE_URI = "sqlite:///traptracker.db"
 
 Base = declarative_base()
 
-# Object defs
 
-class Line(Base):
+# Useful functions
+def create_hashed_line(name, uPassword, aPassword):
+    salt = os.urandom(40)
+    hashed = hashlib.pbkdf2_hmac('sha1', str.encode(uPassword), salt, 100000)
+    admin_hashed = hashlib.pbkdf2_hmac('sha1', str.encode(aPassword), salt, 100000)
+
+    # Create line and return
+    return Line(name, binascii.hexlify(hashed).decode("utf-8"),
+                binascii.hexlify(admin_hashed).decode("utf-8"), binascii.hexlify(salt),
+                1, 1, 1)
+
+
+# Object defs
+class Line(Base, UserMixin):
     __tablename__ = 'line'
     id = Column(Integer, primary_key=True)
     name = Column(String(80), unique=True)
@@ -32,6 +49,9 @@ class Line(Base):
 
     def __repr__(self):
         return "<Line id:{} name:{}>".format(self.id, self.name)
+
+    def get_id(self):
+        return str(self.id)
 
     def getDict(self):
         return {'id': self.id,

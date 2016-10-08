@@ -1,15 +1,23 @@
 from flask import render_template, request, redirect, url_for, send_file, flash
-import traptracker.orm as orm
-from traptracker import app
-from traptracker.orm import Line, Trap, Catch, Animal
-from traptracker.auth import authenticate, AUTH_NONE, AUTH_CATCH, AUTH_LINE
 from flask_googlemaps import Map
+import flask_login
+
+import traptracker.orm as orm
+from traptracker import app, loginManager
+from traptracker.orm import Line, Trap, Catch, Animal, create_hashed_line
+from traptracker.auth import authenticate, AUTH_NONE, AUTH_CATCH, AUTH_LINE, LoginForm, CreateLineForm
+
 from datetime import datetime
-import os
-import binascii
-import hashlib
 from io import BytesIO
 import xlsxwriter
+
+
+@loginManager.user_loader
+def load_user(id):
+    sess = orm.get_session()
+    line = sess.query(Line).get(id)
+    sess.close()
+    return line
 
 
 @app.route("/", methods=["GET"])
@@ -22,10 +30,30 @@ def index():
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
-    if request.method == "POST":
-        return "Test" # Obv not going to be here, TODO: Log in users
-    else:
-        return render_template("login.html")
+    form = LoginForm()
+    if form.validate_on_submit():
+        sess = orm.get_session()
+        line = sess.query(Line).filter_by(name=form.name.data).first()
+        sess.close()
+
+        if not line:
+            flash("Username or Password is invalid", "error")
+            return redirect(url_for("login"))
+
+        flask_login.login_user(line)
+
+        flash("Logged in successfully", "confirm")
+        return redirect(url_for("index"))
+
+    # GET Request
+    return render_template("login.html", form=form)
+
+
+@app.route("/logout", methods=["GET"])
+@flask_login.login_required
+def logout():
+    flask_login.logout_user()
+    return redirect(url_for("index"))
 
 
 @app.route("/about", methods=["GET"])
@@ -35,31 +63,32 @@ def about():
 
 @app.route("/create", methods=["GET", "POST"])
 def create():
-    if request.method == "POST":
-        form = request.form
-        if form["uPassword"] == form["re_uPassword"] and form["aPassword"] == form["re_aPassword"]:
-            # TODO: CAPTCHA
-            # Create line and store in database (TODO: Change to function)
-            salt = os.urandom(40)
-            hashed = hashlib.pbkdf2_hmac('sha1', str.encode(form["uPassword"]), salt, 100000)
+    form = CreateLineForm()
+    if form.validate_on_submit():
+        if form.uPassword != form.re_uPassword or form.aPassword != form.re_aPassword:
+            flash("The passwords inserted did not match", "error")
+            return render_template("create.html", form=form)
 
-            line = Line(form["name"], binascii.hexlify(hashed).decode("utf-8"), binascii.hexlify(salt))
+        line = create_hashed_line(form.name, form.uPassword, form.aPassword)
+
+        # Write to database
+        try:
             sess = orm.get_session()
             sess.add(line)
             sess.commit()
             sess.close()
+        except:
+            flash("The line name already exists in the database", "erro")
 
-            flash("The new line for {} was successfully created".format(form["name"]), "confirm")
-            return redirect(url_for("index"))
-        else:
-            flash("The passwords inserted did not match", "error")
-            return redirect(url_for("create"))
+        flash("The new line for {} was successfully created".format(line.name), "confirm")
+        return redirect(url_for("index"))
 
-    else:
-        return render_template("create.html")
+    # On GET Request
+    return render_template("create.html", form=form)
 
 
 @app.route("/catches/<int:number>", methods=["GET"])
+@flask_login.login_required
 def catches(number):
     sess = orm.get_session()
     result = render_template("catches.html",
@@ -72,6 +101,7 @@ def catches(number):
 
 
 @app.route("/edit/<int:number>", methods=["GET"])
+@flask_login.login_required
 def traps(number):
     sess = orm.get_session()
     trapData = sess.query(Trap).filter_by(line_id=number).all()
@@ -105,6 +135,7 @@ def traps(number):
 
 
 @app.route("/export/<int:number>", methods=["GET"])
+@flask_login.login_required
 def export(number):
     sess = orm.get_session()
     catchData = sess.query(Catch, Trap, Animal).join(Trap).join(Animal).\

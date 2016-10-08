@@ -1,11 +1,12 @@
 """
 Uploads a bunch of junk test data to the orm database
 """
+import traptracker.orm as orm
+from traptracker.orm import Line, Trap, Catch, Animal
+
 import hashlib
 import os
 import binascii
-import traptracker.orm as orm
-from traptracker.orm import Line, Trap, Catch, Animal
 
 
 def pushData(bitAdd):

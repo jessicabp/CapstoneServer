@@ -1,8 +1,13 @@
 from flask import Flask
 from flask_googlemaps import GoogleMaps
 from flask_restful import Api
-import logging
+import flask_login
+
 from traptracker.api import LineInterface, TrapInterface, AnimalInterface, CatchInterface
+from traptracker.auth import Anonymous
+
+import logging
+import base64
 
 # Set up flask application with all plugins
 app = Flask(__name__)
@@ -12,6 +17,14 @@ api = Api(app)
 # Google Maps
 app.config['GOOGLEMAPS_KEY'] = "AIzaSyBcOWrE3u1z01r0XSysaZhQq_G1oz0oJps"
 GoogleMaps(app)
+
+# Flask Login
+loginManager = flask_login.LoginManager()
+loginManager.login_view = "login"
+loginManager.login_message = "Please log in to access this page"
+loginManager.login_message_category = "warning"
+loginManager.anonymous_user = Anonymous
+loginManager.init_app(app)
 
 # Set up logging
 logging.basicConfig(

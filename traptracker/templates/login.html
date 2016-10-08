@@ -2,12 +2,13 @@
 {% block body %}
     <h1>Login</h1>
 
-    <form action = "{{ request.path }}" method = "post">
-         <label for="username">Username</label><br>
-         <input type="text" id="username" name="username" placeholder="Username" /><br>
-         <label for = "password">Password</label><br>
-         <input type="password" id="password" name = "password" placeholder="Password" /><br>
-         <input type="submit" value="Submit" />
+    <form method = "post">
+        {{ form.csrf_token }}
+        {{ form.name.label }} <br>
+        {{form.name }} <br>
+        {{ form.password.label }} <br>
+        {{ form.password }} <br>
+        <input type="submit" value="Submit" />
       </form>
 
 {% endblock %}

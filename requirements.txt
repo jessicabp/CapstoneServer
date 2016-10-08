@@ -2,3 +2,5 @@ Flask-SQLAlchemy
 flask-restful
 flask-googlemaps
 xlsxwriter
+Flask-WTF
+Flask-Login

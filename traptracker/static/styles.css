@@ -115,6 +115,7 @@ main article footer{
 /* Form */
 label {
     font-weight: bold;
+    text-transform: capitalize;
 }
 
 input[type=text] {
