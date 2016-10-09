@@ -1,6 +1,5 @@
 from flask import Flask
 from flask_sslify import SSLify
-from flask_googlemaps import GoogleMaps
 from flask_restful import Api
 import flask_login
 
@@ -15,10 +14,6 @@ app = Flask(__name__)
 sslify = SSLify(app)
 app.config["SECRET_KEY"] = b"w-X\xc2\xd3\xd3\xbd{+\x01\x82\xb0\x83'\xe0Dyk\xab\x98V\xf9\x1e}"
 api = Api(app)
-
-# Google Maps
-app.config['GOOGLEMAPS_KEY'] = "AIzaSyBcOWrE3u1z01r0XSysaZhQq_G1oz0oJps"
-GoogleMaps(app)
 
 # Flask Login
 loginManager = flask_login.LoginManager()

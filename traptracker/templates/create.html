@@ -4,13 +4,28 @@
     <form action="{{request.path}}" method="post">
         {{ form.csrf_token }}
         {{ form.name.label }} <br>
-        {{ form.name }} <br>
+
+        {{ form.name }} <br><br>
+
         {{ form.uPassword.label }} <br>
         {{ form.uPassword }} <br>
-        {{ form.re_uPassword }} <br>
+        {{ form.re_uPassword }} <br><br>
+
         {{ form.aPassword.label }} <br>
         {{ form.aPassword }} <br>
-        {{ form.re_aPassword }} <br>
+        {{ form.re_aPassword }} <br><br>
+
+        {{ form.animal1.label }} <br>
+        {{ form.animal1(list="id_datalist") }}<br>
+        {{ form.animal2(list="id_datalist") }}<br>
+        {{ form.animal3(list="id_datalist") }}<br><br>
+
+        <datalist id="id_datalist">
+            {% for animal in animals %}
+                <option value={{ animal.name }}>
+            {% endfor %}
+        </datalist>
+
         {# {{ form.recaptcha }} #}
         <input type="submit" value="Submit" />
     </form>

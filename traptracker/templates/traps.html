@@ -64,8 +64,31 @@
             }
         </script>
 
-        {{ map.js }}
-        {{ map.html }}
+        <div id="map" style="width: 600px; height: 400px;"></div>
+
+
+        <script type="text/javascript">
+            var map = new L.Map('map');
+
+            // create the tile layer with correct attribution
+            var osm = new L.TileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                minZoom: 8,
+                maxZoom: 19,
+                attribution: 'Map data © <a href="http://openstreetmap.org">OpenStreetMap</a> contributors'});
+
+            // start the map in South-East England
+            map.setView(new L.LatLng({{avg[0]}}, {{avg[1]}}),15);
+
+
+            {% for trap in traps %}
+                L.marker([{{trap.lat}}, {{trap.long}}]).addTo(map).bindPopup(
+                "Lat: {{trap.lat}}<br />" +
+                "Long: {{trap.long}}<br />" +
+                "Number: {{trap.line_order}}");
+            {% endfor %}
+
+            map.addLayer(osm);
+        </script>
 
     {% else %}
         There are no traps currently on this line

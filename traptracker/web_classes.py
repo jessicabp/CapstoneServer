@@ -1,5 +1,4 @@
 from flask import render_template, request, redirect, url_for, send_file, flash
-from flask_googlemaps import Map
 import flask_login
 
 import traptracker.orm as orm
@@ -10,6 +9,7 @@ from traptracker.auth import authenticate, AUTH_NONE, AUTH_CATCH, AUTH_LINE, Log
 from datetime import datetime
 from io import BytesIO
 import xlsxwriter
+import string
 
 
 @loginManager.user_loader
@@ -22,6 +22,7 @@ def load_user(id):
 
 @app.route("/", methods=["GET"])
 def index():
+    flask_login.logout_user()
     sess = orm.get_session()
     result = render_template("index.html", lines=sess.query(Line).all())
     sess.close()
@@ -31,9 +32,14 @@ def index():
 @app.route("/login", methods=["GET", "POST"])
 def login():
     form = LoginForm()
+    next = request.args.get('next')
+    id = 0
+    if next is not None:
+        id = int(next.split('/')[-1])
+
     if form.validate_on_submit():
         sess = orm.get_session()
-        line = sess.query(Line).filter_by(name=form.name.data).first()
+        line = sess.query(Line).filter_by(id=form.name.data).first()
         sess.close()
 
         if not line:
@@ -43,10 +49,10 @@ def login():
         flask_login.login_user(line)
 
         flash("Logged in successfully", "confirm")
-        return redirect(url_for("index"))
+        return redirect(next or url_for("index"))
 
     # GET Request
-    return render_template("login.html", form=form)
+    return render_template("login.html", form=form, id=id, next=next)
 
 
 @app.route("/logout", methods=["GET"])
@@ -64,31 +70,50 @@ def about():
 @app.route("/create", methods=["GET", "POST"])
 def create():
     form = CreateLineForm()
+    sess = orm.get_session()
+    animals = sess.query(Animal).all()
+    sess.close()
+
     if form.validate_on_submit():
-        if form.uPassword != form.re_uPassword or form.aPassword != form.re_aPassword:
+        if form.uPassword.data != form.re_uPassword.data or form.aPassword.data != form.re_aPassword.data:
             flash("The passwords inserted did not match", "error")
             return render_template("create.html", form=form)
 
-        line = create_hashed_line(form.name, form.uPassword, form.aPassword)
+        sess = orm.get_session()
+
+        # Get ID's for animals
+        animalsID = []
+        for name in [form.animal1.data, form.animal2.data, form.animal3.data]:
+            animal = sess.query(Animal).filter_by(name=string.capwords(name)).first()
+            if not animal:
+                new_animal = Animal(name)
+                sess.add(new_animal)
+                sess.commit()
+                animalsID.append(new_animal.id)
+            else:
+                animalsID.append(animal.id)
+
+        line = create_hashed_line(form.name.data, form.uPassword.data, form.aPassword.data,
+                                  animalsID[0], animalsID[1], animalsID[2])
 
         # Write to database
         try:
-            sess = orm.get_session()
             sess.add(line)
             sess.commit()
-            sess.close()
         except:
-            flash("The line name already exists in the database", "erro")
+            flash("The line name already exists in the database", "error")
+            return render_template("create.html", form=form)
+        finally:
+            sess.close()
 
-        flash("The new line for {} was successfully created".format(line.name), "confirm")
+        flash("The new line for {} was successfully created".format(form.name.data), "confirm")
         return redirect(url_for("index"))
 
     # On GET Request
-    return render_template("create.html", form=form)
+    return render_template("create.html", form=form, animals=animals)
 
 
 @app.route("/catches/<int:number>", methods=["GET"])
-@flask_login.login_required
 def catches(number):
     sess = orm.get_session()
     result = render_template("catches.html",
@@ -114,28 +139,13 @@ def traps(number):
     avgLat /= len(trapData)
     avgLong /= len(trapData)
 
-    map = Map(
-        identifier="map",
-        lat = avgLat,
-        lng = avgLong,
-        style="height:400px;width:400px;margin:0;float=right;",
-        markers=[
-          { 'icon': 'http://maps.google.com/mapfiles/ms/icons/blue-dot.png',
-            'lat': trap.lat,
-            'lng': trap.long,
-            'infobox': "Number: {}".format(trap.line_order)
-          } for trap in trapData
-        ]
-    )
-
-    result = render_template("traps.html", traps=trapData, map=map,
+    result = render_template("traps.html", traps=trapData, avg=(avgLat, avgLong),
                            name=sess.query(Line).filter_by(id=number).first().name)
     sess.close()
     return result
 
 
 @app.route("/export/<int:number>", methods=["GET"])
-@flask_login.login_required
 def export(number):
     sess = orm.get_session()
     catchData = sess.query(Catch, Trap, Animal).join(Trap).join(Animal).\

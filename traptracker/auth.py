@@ -3,7 +3,7 @@ from traptracker.orm import Line
 
 import flask_login
 from flask_wtf import FlaskForm, RecaptchaField
-from wtforms import StringField, PasswordField
+from wtforms import StringField, PasswordField, HiddenField
 from wtforms.validators import DataRequired
 
 import hashlib
@@ -50,14 +50,18 @@ class Anonymous(flask_login.AnonymousUserMixin):
 
 
 class LoginForm(FlaskForm):
-    name = StringField('name', validators=[DataRequired()])
-    password = PasswordField('password', validators=[DataRequired()])
+    name = HiddenField("id")
+    password = PasswordField("password", validators=[DataRequired()])
+    next = HiddenField("next")
 
 
 class CreateLineForm(FlaskForm):
-    name = StringField('name', validators=[DataRequired()])
-    uPassword = PasswordField('User Password', validators=[DataRequired()], render_kw={"placeholder": "User Password"})
-    re_uPassword = PasswordField('re_uPassword', validators=[DataRequired()], render_kw={"placeholder": "Re-enter user password"})
-    aPassword = PasswordField('Admin Password', validators=[DataRequired()], render_kw={"placeholder": "Admin Password"})
-    re_aPassword = PasswordField('re_aPassword', validators=[DataRequired()], render_kw={"placeholder": "Re-enter admin Password"})
+    name = StringField("name", validators=[DataRequired()])
+    uPassword = PasswordField("User Password", validators=[DataRequired()], render_kw={"placeholder": "User password"})
+    re_uPassword = PasswordField("re_uPassword", validators=[DataRequired()], render_kw={"placeholder": "Re-enter user password"})
+    aPassword = PasswordField("Admin Password", validators=[DataRequired()], render_kw={"placeholder": "Admin password"})
+    re_aPassword = PasswordField("re_aPassword", validators=[DataRequired()], render_kw={"placeholder": "Re-enter admin password"})
+    animal1 = StringField("Animal Preference", validators=[DataRequired()], render_kw={"placeholder": "Animal preference 1"})
+    animal2 = StringField("Animal Preference", validators=[DataRequired()], render_kw={"placeholder": "Animal preference 2"})
+    animal3 = StringField("Animal Preference", validators=[DataRequired()], render_kw={"placeholder": "Animal preference 3"})
     #recaptcha = RecaptchaField()

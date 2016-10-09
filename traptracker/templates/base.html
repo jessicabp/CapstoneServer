@@ -3,6 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <link rel="stylesheet" href="{{url_for('static', filename='styles.css')}}" media="all" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.0.1/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.0.1/dist/leaflet.js"></script>
     <title>Trap Tracker</title>
 </head>
 <body>
@@ -11,8 +13,6 @@
             <li><a href="/">Home</a></li>
             <li><a href="{{url_for('create')}}">Create Line</a></li>
             <li><a href="{{url_for('about')}}">About</a></li>
-
-            <li class="navRight"><a href="/login">Login</a></li>
         </ul>
     </nav>
     <main>

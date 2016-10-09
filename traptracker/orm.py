@@ -15,7 +15,7 @@ Base = declarative_base()
 
 
 # Useful functions
-def create_hashed_line(name, uPassword, aPassword):
+def create_hashed_line(name, uPassword, aPassword, animal1, animal2, animal3):
     salt = os.urandom(40)
     hashed = hashlib.pbkdf2_hmac('sha1', str.encode(uPassword), salt, 100000)
     admin_hashed = hashlib.pbkdf2_hmac('sha1', str.encode(aPassword), salt, 100000)
@@ -23,7 +23,7 @@ def create_hashed_line(name, uPassword, aPassword):
     # Create line and return
     return Line(name, binascii.hexlify(hashed).decode("utf-8"),
                 binascii.hexlify(admin_hashed).decode("utf-8"), binascii.hexlify(salt),
-                1, 1, 1)
+                animal1, animal2, animal3)
 
 
 # Object defs
@@ -126,13 +126,13 @@ class Catch(Base):
 class Animal(Base):
     __tablename__ = "animal"
     id = Column(Integer, primary_key=True)
-    name = Column(String(30))
+    name = Column(String(30), unique=True)
 
     def __init__(self, name):
         self.name = name
 
     def __repr__(self):
-        return "<Animal id:{} name:{}".format(self.id, self.name)
+        return "<Animal id:{} name:{}>".format(self.id, self.name)
 
     def getDict(self):
         return {"id": self.id, "name": self.name}

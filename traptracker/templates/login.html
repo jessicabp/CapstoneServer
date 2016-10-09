@@ -4,10 +4,10 @@
 
     <form method = "post">
         {{ form.csrf_token }}
-        {{ form.name.label }} <br>
-        {{form.name }} <br>
+        {{ form.name(value=id) }}
         {{ form.password.label }} <br>
         {{ form.password }} <br>
+        {{ form.next(value=next) }}
         <input type="submit" value="Submit" />
       </form>
 
