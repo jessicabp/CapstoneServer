@@ -64,4 +64,4 @@ class CreateLineForm(FlaskForm):
     animal1 = StringField("Animal Preference", validators=[DataRequired()], render_kw={"placeholder": "Animal preference 1"})
     animal2 = StringField("Animal Preference", validators=[DataRequired()], render_kw={"placeholder": "Animal preference 2"})
     animal3 = StringField("Animal Preference", validators=[DataRequired()], render_kw={"placeholder": "Animal preference 3"})
-    #recaptcha = RecaptchaField()
+    recaptcha = RecaptchaField()
