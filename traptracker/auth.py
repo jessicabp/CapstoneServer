@@ -9,7 +9,6 @@ from wtforms.validators import DataRequired
 import hashlib
 import binascii
 
-
 AUTH_NONE = 0
 AUTH_CATCH = 1
 AUTH_LINE = 2
@@ -60,4 +59,4 @@ class CreateLineForm(FlaskForm):
     re_uPassword = PasswordField('re_uPassword', validators=[DataRequired()], render_kw={"placeholder": "Re-enter user password"})
     aPassword = PasswordField('Admin Password', validators=[DataRequired()], render_kw={"placeholder": "Admin Password"})
     re_aPassword = PasswordField('re_aPassword', validators=[DataRequired()], render_kw={"placeholder": "Re-enter admin Password"})
-    #recaptcha = RecaptchaField()
+    recaptcha = RecaptchaField()

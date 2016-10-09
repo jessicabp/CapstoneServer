@@ -65,22 +65,23 @@ def about():
 def create():
     form = CreateLineForm()
     if form.validate_on_submit():
-        if form.uPassword != form.re_uPassword or form.aPassword != form.re_aPassword:
+        if form.uPassword.data != form.re_uPassword.data or form.aPassword.data != form.re_aPassword.data:
             flash("The passwords inserted did not match", "error")
             return render_template("create.html", form=form)
 
-        line = create_hashed_line(form.name, form.uPassword, form.aPassword)
+        line = create_hashed_line(form.name.data, form.uPassword.data, form.aPassword.data)
 
         # Write to database
+        sess = orm.get_session()
         try:
-            sess = orm.get_session()
             sess.add(line)
             sess.commit()
-            sess.close()
+            flash("The new line for {} was successfully created".format(line.name), "confirm")
         except:
-            flash("The line name already exists in the database", "erro")
+            flash("The line name already exists in the database", "error")
+        finally:
+            sess.close()
 
-        flash("The new line for {} was successfully created".format(line.name), "confirm")
         return redirect(url_for("index"))
 
     # On GET Request
@@ -101,7 +102,7 @@ def catches(number):
 
 
 @app.route("/edit/<int:number>", methods=["GET"])
-@flask_login.login_required
+#@flask_login.login_required #TODO: do we want to login just to view?
 def traps(number):
     sess = orm.get_session()
     trapData = sess.query(Trap).filter_by(line_id=number).all()
