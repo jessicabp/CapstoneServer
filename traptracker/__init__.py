@@ -1,4 +1,5 @@
 from flask import Flask
+from flask_sslify import SSLify
 from flask_googlemaps import GoogleMaps
 from flask_restful import Api
 import flask_login
@@ -11,6 +12,7 @@ import base64
 
 # Set up flask application with all plugins
 app = Flask(__name__)
+sslify = SSLify(app)
 app.config["SECRET_KEY"] = b"w-X\xc2\xd3\xd3\xbd{+\x01\x82\xb0\x83'\xe0Dyk\xab\x98V\xf9\x1e}"
 api = Api(app)
 
