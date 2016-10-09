@@ -23,6 +23,11 @@ loginManager.login_message_category = "warning"
 loginManager.anonymous_user = Anonymous
 loginManager.init_app(app)
 
+# recaptcha
+# TODO: not sure how we should generate these, hardcoding bad. Maybe load from file is ok.
+app.config['RECAPTCHA_PUBLIC_KEY'] = '6LeYIbsSAAAAACRPIllxA7wvXjIE411PfdB2gt2J'
+app.config['RECAPTCHA_PRIVATE_KEY'] = '6LeYIbsSAAAAAJezaIq3Ft_hSTo0YtyeFG-JgRtu'
+
 # Set up logging
 logging.basicConfig(
     filename="server.log",
