@@ -17,6 +17,7 @@ lineUrl = "/api/line"
 trapUrl = "/api/trap"
 catchUrl = "/api/catch"
 animalUrl = "/api/animal"
+baseUrl = "https://localhost"
 
 
 class TestLineInterface(unittest.TestCase):
@@ -36,16 +37,16 @@ class TestLineInterface(unittest.TestCase):
         sess.close()
 
     def testGet_Base(self):
-        responseJSON = json.loads(self.app.get(lineUrl).data.decode("utf-8"))["result"]
+        responseJSON = json.loads(self.app.get(lineUrl, base_url=baseUrl).data.decode("utf-8"))["result"]
         self.assertEqual(len(responseJSON), 2, "/line not returning correct amount")
 
     def testGet_LineQuery(self):
-        responseJSON = json.loads(self.app.get(lineUrl + "?line_id=1").data.decode("utf-8"))["result"]
+        responseJSON = json.loads(self.app.get(lineUrl + "?line_id=1", base_url=baseUrl).data.decode("utf-8"))["result"]
         self.assertEqual(len(responseJSON), 1, "/line?line_id not returning correct amount")
         self.assertEqual(responseJSON[0]['name'], "Manatawu Gorge", "/line?line_id table not returning correct name")
 
     def testGet_NameQeury(self):
-        responseJSON = json.loads(self.app.get(lineUrl + "?name=Kai").data.decode("utf-8"))["result"]
+        responseJSON = json.loads(self.app.get(lineUrl + "?name=Kai", base_url=baseUrl).data.decode("utf-8"))["result"]
         self.assertEqual(len(responseJSON), 1, "/line?name not returning correct amount")
         self.assertEqual(responseJSON[0]['id'], 2, "/line?name incorrect id returned")
 
@@ -54,7 +55,7 @@ class TestLineInterface(unittest.TestCase):
         entiresBefore = len(sess.query(Line).all())
         jsonData = json.dumps([{"name": testLine.name, "password": testLine.password_hashed, "admin_password": testLine.password_hashed,
                                 "animal1": 1, "animal2": 2, "animal3": 3}])
-        self.app.put(lineUrl, data=jsonData, content_type="application/json")
+        self.app.put(lineUrl, data=jsonData, content_type="application/json", base_url=baseUrl)
 
         # Test increase of one + data integrity of password
         self.assertEqual(entiresBefore+1, len(sess.query(Line).all()), "/line did not add testLine")
@@ -65,13 +66,13 @@ class TestLineInterface(unittest.TestCase):
 
     def testPut_NonListFailure(self):
         jsonData = json.dumps({"name": testLine.name, "password": testLine.password_hashed})
-        response = self.app.put(lineUrl, data=jsonData, content_type="application/json")
+        response = self.app.put(lineUrl, data=jsonData, content_type="application/json", base_url=baseUrl)
         self.assertEqual(response.status_code, 400, "Wrong error code returned with non list for lines")
         self.assertIn("non iterable datatype passed", response.data.decode("utf-8"), "Wrong message given")
 
     def testPut_MissingKeyFailure(self):
         jsonData = json.dumps([{"name": testLine.name}])  # No password given
-        response = self.app.put(lineUrl, data=jsonData, content_type="application/json")
+        response = self.app.put(lineUrl, data=jsonData, content_type="application/json", base_url=baseUrl)
         self.assertEqual(response.status_code, 400, "Wrong error code returned with missing key")
         self.assertIn("could not enter line into database", response.data.decode("utf-8"), "Wrong message given")
 
@@ -79,7 +80,7 @@ class TestLineInterface(unittest.TestCase):
         sess = orm.get_session()
         entiresBefore = len(sess.query(Line).all())
         jsonData = json.dumps({"lineId": 1, "password": "password"})
-        self.app.delete(lineUrl, data=jsonData, content_type="application/json")
+        self.app.delete(lineUrl, data=jsonData, content_type="application/json", base_url=baseUrl)
         self.assertEqual(entiresBefore-1, len(sess.query(Line).all()), "/line DELETE did not delete line")
         sess.close()
 
@@ -98,15 +99,15 @@ class TestTrapInterface(unittest.TestCase):
         sess.close()
 
     def testGet_Base(self):
-        responseJSON = json.loads(self.app.get(trapUrl).data.decode("utf-8"))["message"]
+        responseJSON = json.loads(self.app.get(trapUrl, base_url=baseUrl).data.decode("utf-8"))["message"]
         self.assertEqual(responseJSON, "no argument given", "Incorrect response returned")
 
     def testGet_LineQuery(self):
-        responseJSON = json.loads(self.app.get(trapUrl+ "?line_id=1").data.decode("utf-8"))["result"]
+        responseJSON = json.loads(self.app.get(trapUrl+ "?line_id=1", base_url=baseUrl).data.decode("utf-8"))["result"]
         self.assertEqual(len(responseJSON), 4, "/trap?line_id not returning correct amount")
 
     def testGet_TrapQuery(self):
-        responseJSON = json.loads(self.app.get(trapUrl + "?trap_id=5").data.decode("utf-8"))["result"]
+        responseJSON = json.loads(self.app.get(trapUrl + "?trap_id=5", base_url=baseUrl).data.decode("utf-8"))["result"]
         self.assertEqual(len(responseJSON), 1, "/trap?trap_id not returning correct amount")
         self.assertEqual(responseJSON[0]['latitude'], -40.312435, "/trap?trap_id returned incorrect lat")
         self.assertEqual(responseJSON[0]['longitude'], 175.780965, "/trap?trap_id returned incorrect long")
@@ -125,7 +126,7 @@ class TestTrapInterface(unittest.TestCase):
                                 "number": testTrap.line_order,
                                 "side": testTrap.path_side}]
                                })
-        response = self.app.put(trapUrl, data=jsonData, content_type="application/json")
+        response = self.app.put(trapUrl, data=jsonData, content_type="application/json", base_url=baseUrl)
 
         # Test increase of one + data integrity of all data passed
         self.assertEqual(entiresBefore+1, len(sess.query(Trap).all()), "/trap did not add testTrap")
@@ -149,19 +150,19 @@ class TestTrapInterface(unittest.TestCase):
                                 "number": testTrap.line_order,
                                 "side": testTrap.path_side}
                                })
-        response = self.app.put(trapUrl, data=jsonData, content_type="application/json")
+        response = self.app.put(trapUrl, data=jsonData, content_type="application/json", base_url=baseUrl)
         self.assertEqual(response.status_code, 400, "Wrong error code returned with non list for traps")
         self.assertIn("non iterable datatype passed with traps", response.data.decode("utf-8"), "Wrong message given")
 
     def testPut_CantAuthenticateFailure(self):
         jsonData = json.dumps({"lineId": 1, "password":"incorrect"})  # No password or traps given
-        response = self.app.put(trapUrl, data=jsonData, content_type="application/json")
+        response = self.app.put(trapUrl, data=jsonData, content_type="application/json", base_url=baseUrl)
         self.assertEqual(response.status_code, 403, "Wrong error code returned with failure to authenticate")
         self.assertIn("could not validate password", response.data.decode("utf-8"), "Wrong message given")
 
     def testPut_MissingKeyFailure(self):
         jsonData = json.dumps({"lineId": 1, "password":"password", "traps":[{"rebait_time": testTrap.rebait_time}]})
-        response = self.app.put(trapUrl, data=jsonData, content_type="application/json")
+        response = self.app.put(trapUrl, data=jsonData, content_type="application/json", base_url=baseUrl)
         self.assertEqual(response.status_code, 400, "Wrong error code returned with missing key")
         self.assertIn("could not enter trap into database", response.data.decode("utf-8"), "Wrong message given")
 
@@ -171,7 +172,7 @@ class TestTrapInterface(unittest.TestCase):
         jsonData = json.dumps({"lineId": 1,
                            "password": "password",
                            "traps": [1,4]})
-        self.app.delete(trapUrl, data=jsonData, content_type="application/json")
+        self.app.delete(trapUrl, data=jsonData, content_type="application/json", base_url=baseUrl)
         self.assertEqual(entiresBefore-2, len(sess.query(Trap).all()), "/trap DELETE did not delete traps")
         sess.close()
 
@@ -197,15 +198,15 @@ class TestCatchInterface(unittest.TestCase):
         sess.close()
 
     def testGet_Base(self):
-        responseJSON = json.loads(self.app.get(catchUrl).data.decode("utf-8"))["message"]
+        responseJSON = json.loads(self.app.get(catchUrl, base_url=baseUrl).data.decode("utf-8"))["message"]
         self.assertEqual(responseJSON, "no argument given", "Incorrect response returned")
 
     def testGet_LineQuery(self):
-        responseJSON = json.loads(self.app.get(catchUrl + "?line_id=2").data.decode("utf-8"))["result"]
+        responseJSON = json.loads(self.app.get(catchUrl + "?line_id=2", base_url=baseUrl).data.decode("utf-8"))["result"]
         self.assertEqual(len(responseJSON), 5, "/catch?line_id not returning correct amount")
 
     def testGet_TrapQuery(self):
-        responseJSON = json.loads(self.app.get(catchUrl + "?trap_id=6").data.decode("utf-8"))["result"]
+        responseJSON = json.loads(self.app.get(catchUrl + "?trap_id=6", base_url=baseUrl).data.decode("utf-8"))["result"]
         self.assertEqual(len(responseJSON), 3, "/catch?trap_id not returning correct amount")
 
     def testPut(self):
@@ -217,7 +218,7 @@ class TestCatchInterface(unittest.TestCase):
                                             "animalId": testCatch.animal_id,
                                             "time": testCatch.time}]
                                 })
-        response = self.app.put(catchUrl, data=jsonData, content_type="application/json")
+        response = self.app.put(catchUrl, data=jsonData, content_type="application/json", base_url=baseUrl)
 
         # Test increase of one + data integrity of all data passed
         self.assertEqual(entiresBefore+1, len(sess.query(Catch).all()))
@@ -234,19 +235,19 @@ class TestCatchInterface(unittest.TestCase):
                                             "animalId": testCatch.animal_id,
                                             "time": testCatch.time}
                                 })
-        response = self.app.put(catchUrl, data=jsonData, content_type="application/json")
+        response = self.app.put(catchUrl, data=jsonData, content_type="application/json", base_url=baseUrl)
         self.assertEqual(response.status_code, 400, "Wrong error code returned with non list for traps")
         self.assertIn("non iterable datatype passed with catches", response.data.decode("utf-8"), "Wrong message given")
 
     def testPut_CantAuthenticateFailure(self):
         jsonData = json.dumps({"lineId": 1, "password":"incorrect"})  # No password or traps given
-        response = self.app.put(catchUrl, data=jsonData, content_type="application/json")
+        response = self.app.put(catchUrl, data=jsonData, content_type="application/json", base_url=baseUrl)
         self.assertEqual(response.status_code, 403, "Wrong error code returned with failure to authenticate")
         self.assertIn("could not validate password", response.data.decode("utf-8"), "Wrong message given")
 
     def testPut_MissingKeyFailure(self):
         jsonData = json.dumps({"lineId": 1, "password":"password", "catches":[{"time": testCatch.time}]})
-        response = self.app.put(catchUrl, data=jsonData, content_type="application/json")
+        response = self.app.put(catchUrl, data=jsonData, content_type="application/json", base_url=baseUrl)
         self.assertEqual(response.status_code, 400, "Wrong error code returned with missing key")
         self.assertIn("could not enter catch into database", response.data.decode("utf-8"), "Wrong message given")
 
@@ -268,11 +269,11 @@ class TestAnimalInterface(unittest.TestCase):
         sess.close()
 
     def testGet_Base(self):
-        responseJSON = json.loads(self.app.get(animalUrl).data.decode("utf-8"))["result"]
+        responseJSON = json.loads(self.app.get(animalUrl, base_url=baseUrl).data.decode("utf-8"))["result"]
         self.assertEqual(len(responseJSON), 4, "/animal not returning correct amount with base query")
 
     def testGet_LineQuery(self):
-        responseJSON = json.loads(self.app.get(animalUrl + "?name=C").data.decode("utf-8"))["result"]
+        responseJSON = json.loads(self.app.get(animalUrl + "?name=C", base_url=baseUrl).data.decode("utf-8"))["result"]
         self.assertEqual(len(responseJSON), 1, "/animal?line_id not returning correct amount")
 
     def testPut(self):
@@ -282,7 +283,7 @@ class TestAnimalInterface(unittest.TestCase):
                                 "password": "password",
                                 "animals": [testAnimal1.name, testAnimal2.name]
                                 })
-        response = self.app.put(animalUrl, data=jsonData, content_type="application/json")
+        response = self.app.put(animalUrl, data=jsonData, content_type="application/json", base_url=baseUrl)
 
         # Test increase of one + data integrity of all data passed
         self.assertEqual(entiresBefore+2, len(sess.query(Animal).all()))
@@ -295,7 +296,7 @@ class TestAnimalInterface(unittest.TestCase):
                                 "password": "password",
                                 "animals": testAnimal1.name
                                 })
-        response = self.app.put(animalUrl, data=jsonData, content_type="application/json")
+        response = self.app.put(animalUrl, data=jsonData, content_type="application/json", base_url=baseUrl)
         self.assertEqual(response.status_code, 400, "Wrong error code returned with non list for traps")
         self.assertIn("non iterable datatype passed with catches", response.data.decode("utf-8"), "Wrong message given")
 
@@ -304,7 +305,7 @@ class TestAnimalInterface(unittest.TestCase):
                                 "password": "incorrect",
                                 "animals": [testAnimal1.name, testAnimal2.name]
                                 })
-        response = self.app.put(animalUrl, data=jsonData, content_type="application/json")
+        response = self.app.put(animalUrl, data=jsonData, content_type="application/json", base_url=baseUrl)
         self.assertEqual(response.status_code, 403, "Wrong error code returned with failure to authenticate")
         self.assertIn("could not validate password", response.data.decode("utf-8"), "Wrong message given")
 
@@ -312,7 +313,7 @@ class TestAnimalInterface(unittest.TestCase):
         jsonData = json.dumps({"lineId": 1,
                                 "animals": [testAnimal1.name, testAnimal2.name]
                                 })
-        response = self.app.put(animalUrl, data=jsonData, content_type="application/json")
+        response = self.app.put(animalUrl, data=jsonData, content_type="application/json", base_url=baseUrl)
         self.assertEqual(response.status_code, 400, "Wrong error code returned with missing key")
         self.assertIn("could not enter catch into database", response.data.decode("utf-8"), "Wrong message given")
 
