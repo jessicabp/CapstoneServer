@@ -12,7 +12,7 @@ import base64
 # Set up flask application with all plugins
 app = Flask(__name__)
 sslify = SSLify(app)
-app.config["SECRET_KEY"] = b"w-X\xc2\xd3\xd3\xbd{+\x01\x82\xb0\x83'\xe0Dyk\xab\x98V\xf9\x1e}"
+app.config.from_object('traptracker.config')
 api = Api(app)
 
 # Flask Login
@@ -22,11 +22,6 @@ loginManager.login_message = "Please log in to access this page"
 loginManager.login_message_category = "warning"
 loginManager.anonymous_user = Anonymous
 loginManager.init_app(app)
-
-# recaptcha
-# TODO: not sure how we should generate these, hardcoding bad. Maybe load from file is ok.
-app.config['RECAPTCHA_PUBLIC_KEY'] = '6LeYIbsSAAAAACRPIllxA7wvXjIE411PfdB2gt2J'
-app.config['RECAPTCHA_PRIVATE_KEY'] = '6LeYIbsSAAAAAJezaIq3Ft_hSTo0YtyeFG-JgRtu'
 
 # Set up logging
 logging.basicConfig(
