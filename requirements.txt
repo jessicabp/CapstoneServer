@@ -4,3 +4,4 @@ flask-googlemaps
 xlsxwriter
 Flask-WTF
 Flask-Login
+flask-sslify
