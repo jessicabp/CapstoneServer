@@ -79,7 +79,7 @@ class TestLineInterface(unittest.TestCase):
     def testDelete(self):
         sess = orm.get_session()
         entiresBefore = len(sess.query(Line).all())
-        jsonData = json.dumps({"lineId": 1, "password": "password"})
+        jsonData = json.dumps({"lineId": 1, "password": "!s0meth@ng"})
         self.app.delete(lineUrl, data=jsonData, content_type="application/json", base_url=baseUrl)
         self.assertEqual(entiresBefore-1, len(sess.query(Line).all()), "/line DELETE did not delete line")
         sess.close()
@@ -117,7 +117,7 @@ class TestTrapInterface(unittest.TestCase):
         sess = orm.get_session()
         entiresBefore = len(sess.query(Trap).all())
         jsonData = json.dumps({"lineId": 1,
-                               "password": "password",
+                               "password": "!s0meth@ng",
                                 "traps": [
                                 {"rebaitTime": testTrap.rebait_time,
                                 "latitude": testTrap.lat,
@@ -161,7 +161,7 @@ class TestTrapInterface(unittest.TestCase):
         self.assertIn("could not validate password", response.data.decode("utf-8"), "Wrong message given")
 
     def testPut_MissingKeyFailure(self):
-        jsonData = json.dumps({"lineId": 1, "password":"password", "traps":[{"rebait_time": testTrap.rebait_time}]})
+        jsonData = json.dumps({"lineId": 1, "password":"!s0meth@ng", "traps":[{"rebait_time": testTrap.rebait_time}]})
         response = self.app.put(trapUrl, data=jsonData, content_type="application/json", base_url=baseUrl)
         self.assertEqual(response.status_code, 400, "Wrong error code returned with missing key")
         self.assertIn("could not enter trap into database", response.data.decode("utf-8"), "Wrong message given")
@@ -170,7 +170,7 @@ class TestTrapInterface(unittest.TestCase):
         sess = orm.get_session()
         entiresBefore = len(sess.query(Trap).all())
         jsonData = json.dumps({"lineId": 1,
-                           "password": "password",
+                           "password": "!s0meth@ng",
                            "traps": [1,4]})
         self.app.delete(trapUrl, data=jsonData, content_type="application/json", base_url=baseUrl)
         self.assertEqual(entiresBefore-2, len(sess.query(Trap).all()), "/trap DELETE did not delete traps")
