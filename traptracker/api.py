@@ -9,6 +9,30 @@ from traptracker.auth import authenticate, AUTH_NONE, AUTH_CATCH, AUTH_LINE
 
 sess = orm.get_session()
 
+class AuthInterface(Resource):
+    def get(self):
+        """
+        /checkauth GET request will return an integer in JSON format with level of authorisation
+        Args:
+            - line_id=<int> : line which you want to check the password against
+            - password=<string> : user or admin password
+
+        Returns:
+            - JSONObject: {"result": <int>}
+
+        0: No auth
+        1: view traps, add catches
+        2: edit line, add/edit traps
+
+        Example:
+            - /checkauth?line_id=1&password=example
+        """
+        args = request.args
+        if not 'line_id' in args and 'password' in args:
+            return {"message": "needs line_id and password url parameters"}, 400
+        level = authenticate(args['line_id'], args['password'])
+        return {'result': level}
+
 class LineInterface(Resource):
     def get(self):
         """

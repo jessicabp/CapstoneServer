@@ -3,7 +3,7 @@ from flask_sslify import SSLify
 from flask_restful import Api
 import flask_login
 
-from traptracker.api import LineInterface, TrapInterface, AnimalInterface, CatchInterface
+from traptracker.api import LineInterface, TrapInterface, AnimalInterface, CatchInterface, AuthInterface
 from traptracker.auth import Anonymous
 
 import logging
@@ -37,6 +37,7 @@ api.add_resource(LineInterface, "/api/line")
 api.add_resource(TrapInterface, "/api/trap")
 api.add_resource(CatchInterface, "/api/catch")
 api.add_resource(AnimalInterface, "/api/animal")
+api.add_resource(AuthInterface, "/api/checkauth")
 
 # Import all routes from web_classes
 import traptracker.web_classes
