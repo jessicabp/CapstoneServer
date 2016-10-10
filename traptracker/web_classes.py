@@ -149,9 +149,21 @@ def traps(number):
 def export(number):
     sess = orm.get_session()
     catchData = sess.query(Catch, Trap, Animal).join(Trap).join(Animal).\
-        filter(Trap.line_id == number).order_by(Catch.time.asc()).all()
+        filter(Trap.line_id == number).order_by(Catch.time.asc(), Trap.line_id.asc()).all()
+    line = sess.query(Line).filter_by(id=number).first()
+    traps = sess.query(Trap.line_order).filter_by(line_id=number).order_by(Trap.line_order.asc()).all()
 
-    # Convert data into csv format
+    # Because it is returned in tuples
+    traps = [trap[0] for trap in traps]
+    print(traps)
+
+    sess.close()
+
+    # Incase they access with no catches at all
+    if len(catchData) == 0:
+        flash("No catches has been recorded for this line", "error")
+        return redirect(url_for("index"))
+
 
     # Create xlsx writer and byte stream
     output = BytesIO()
@@ -160,22 +172,35 @@ def export(number):
 
     # Create formats
     boldFormat = workbook.add_format({'bold': True})
-    dateFormat = workbook.add_format({'num_format': 'dd/mm/yy'})
+    dateFormat = workbook.add_format({'num_format': 'dd/mm/yy', 'bold': True})
 
-    row = 1
+    row = 2
     col = 0
 
     # Write headers
-    worksheet.write('A1', 'Number', boldFormat)
-    worksheet.write('B1', 'Animal', boldFormat)
-    worksheet.write('C1', 'Date', boldFormat)
+    worksheet.write('A1', line.name, boldFormat)
+    worksheet.write('A2', 'Traps', boldFormat)
+
+    # Write traps along the side
+    for trapi in traps:
+        worksheet.write(row, col, trapi)
+        row += 1
 
     # Write data into table
+    col = 1
+    currentDate = datetime.fromtimestamp(catchData[0][0].time)
+    cDateStr = currentDate.strftime("%d/%m/%y")
+
+    worksheet.write(1, col, currentDate, dateFormat)
+
     for catch in catchData:
-        worksheet.write(row, col, catch[1].line_order)
-        worksheet.write(row, col+1, catch[2].name)
-        worksheet.write(row, col+2, datetime.fromtimestamp(catch[0].time), dateFormat)
-        row += 1
+        wDate = datetime.fromtimestamp(catch[0].time)
+        wDateStr = wDate.strftime("%d/%m/%y")
+        if wDateStr != cDateStr:
+            cDateStr = wDateStr
+            col += 1
+            worksheet.write(1, col, wDate, dateFormat)
+        worksheet.write(2+traps.index(catch[1].line_order), col, catch[2].name)
 
     # Wrap up and return file
     workbook.close()
