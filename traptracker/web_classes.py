@@ -1,3 +1,4 @@
+import math
 from flask import render_template, request, redirect, url_for, send_file, flash
 import flask_login
 
@@ -188,13 +189,13 @@ def export(number):
 
     # Write data into table
     col = 1
-    currentDate = datetime.fromtimestamp(catchData[0][0].time)
+    currentDate = datetime.fromtimestamp(int(catchData[0][0].time/1000))
     cDateStr = currentDate.strftime("%d/%m/%y")
 
     worksheet.write(1, col, currentDate, dateFormat)
 
     for catch in catchData:
-        wDate = datetime.fromtimestamp(catch[0].time)
+        wDate = datetime.fromtimestamp(int(catch[0].time/1000))
         wDateStr = wDate.strftime("%d/%m/%y")
         if wDateStr != cDateStr:
             cDateStr = wDateStr
@@ -205,4 +206,4 @@ def export(number):
     # Wrap up and return file
     workbook.close()
     output.seek(0)
-    return send_file(output, attachment_filename="caputres.xlsx", as_attachment="True")
+    return send_file(output, attachment_filename="captures.xlsx", as_attachment="True")
