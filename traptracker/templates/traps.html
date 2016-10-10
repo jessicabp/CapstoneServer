@@ -69,7 +69,7 @@
             function get_new_trap_data() {
                 var trap = {};
                 trap['id'] = parseInt(document.getElementById('eid').value);
-                trap['rebaitTime'] = Math.floor(Date.now() / 1000);
+                trap['rebaitTime'] = Date.now();
                 trap['number'] = parseInt(document.getElementById('enumber').value);
                 trap['latitude'] = parseFloat(document.getElementById('elatitude').value);
                 trap['longitude'] = parseFloat(document.getElementById('elongitude').value);

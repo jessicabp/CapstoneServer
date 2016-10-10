@@ -10,7 +10,7 @@
         </tr>
         {% for catch in catches %}
             <tr>
-                <td>{{datetime.fromtimestamp(catch[0].time).strftime("%d/%m/%y")}}</td>
+                <td>{{datetime.fromtimestamp(catch[0].time/1000).strftime("%d/%m/%y")}}</td>
                 <td>{{catch[1].line_order}}</td>
                 <td>{{catch[2].name}}</td>
             </tr>
