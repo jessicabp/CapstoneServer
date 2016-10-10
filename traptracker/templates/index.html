@@ -2,21 +2,38 @@
 {% block body %}
     <h1>Trap Tracker</h1>
 
-    <table>
+    <table id="lines">
+        <thead>
         <tr>
             <th class="left">Line Name</th>
-            <th class="ten">Options</th>
+            <th class="ten"></th>
+            <th class="ten"></th>
         </tr>
-
-    {% for line in lines %}
+        </thead>
+        <tbody>
+        {% for line in lines %}
         <tr>
             <td>{{line.name}}</td>
-            <td>
-                <a href="/edit/{{line.id}}">Edit</a>
-                <a href="/catches/{{line.id}}">Catches</a>
-            </td>
+            <td><a href="/edit/{{line.id}}">Edit</a></td>
+            <td><a href="/catches/{{line.id}}">Catches</a></td>
         </tr>
-    {% endfor %}
+        {% endfor %}
+        </tbody>
     </table>
+
+    <script type="text/javascript">
+        $(document).ready(function() {
+            $('#lines').dataTable({
+                "columns": [
+                {"name": "name", "orderable": true},
+                {"name": "edit", "orderable": false},
+                {"name": "catches", "orderable": false},
+                ],
+                "order": [[0, 'asc']],
+                paging: true,
+                searching: true
+            });
+        });
+    </script>
 
 {% endblock %}
