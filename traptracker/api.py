@@ -208,9 +208,9 @@ class TrapInterface(Resource):
                         sess.add(trap)
                     else:
                         return {"message": "could not validate admin password"}, 403
-        except:
+        except Exception as e:
             sess.rollback()
-            return {"message": "could not enter trap into database (Missing key/failure to write)"}, 400
+            return {"message": "could not enter trap into database (Missing key/failure to write)", "exception": str(e)}, 400
 
         sess.commit()
         return {'result': [trap.getDict() for trap in traps]}, 201

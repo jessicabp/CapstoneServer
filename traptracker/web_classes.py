@@ -126,7 +126,7 @@ def catches(number):
 
 
 @app.route("/edit/<int:number>", methods=["GET"])
-@flask_login.login_required
+#@flask_login.login_required #TODO: decide if you need password just for viewing
 def traps(number):
     sess = orm.get_session()
     trapData = sess.query(Trap).filter_by(line_id=number).all()
@@ -139,7 +139,7 @@ def traps(number):
     avgLat /= len(trapData)
     avgLong /= len(trapData)
 
-    result = render_template("traps.html", traps=trapData, avg=(avgLat, avgLong),
+    result = render_template("traps.html", line_id=number, traps=trapData, avg=(avgLat, avgLong),
                            name=sess.query(Line).filter_by(id=number).first().name)
     sess.close()
     return result

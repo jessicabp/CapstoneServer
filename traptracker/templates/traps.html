@@ -2,7 +2,7 @@
 {% block body %}
     <h1>Traps in {{name}}</h1>
     {% if traps %}
-        <table>
+        <table id="trap_table">
         <tr>
             <th hidden>ID</th>
             <th class="left">Number</th>
@@ -13,27 +13,9 @@
             <th class="left">Moved</th>
             <th class="left"></th>
         </tr>
-
-        {% for trap in traps %}
-            <tr>
-                <td class="id" hidden>{{trap.id}}</td>
-                <td class="number">{{trap.line_order}}</td>
-                <td class="latitude">{{trap.lat}}</td>
-                <td class="longitude">{{trap.long}}</td>
-                {% if trap.path_side == true  %}
-                    <td class="path_side">Left</td>
-                {% else %}
-                    <td class="path_side">Right</td>
-                {% endif %}
-                </td>
-                <td class="broken">{{trap.broken}}</td>
-                <td class="moved">{{trap.moved}}</td>
-                <td class="edit" style="cursor:pointer;">Edit</td>
-            </tr>
-        {% endfor %}
         </table>
 
-        <form action="{{ request.path }}" method="post">
+        <form id="trap_form">
             <input type="hidden" id="eid" name="eid" value="" />
             Number
             <input type="text" id="enumber" name="enumber" placeholder="number" /><br>
@@ -45,22 +27,133 @@
             <input type="text" id="epath_side" name="epath_side" placeholder="path_side" /><br>
             <input type="checkbox" id="ebroken" name="ebroken" />Broken<br>
             <input type="checkbox" id="emoved" name="emoved" />Moved<br>
-            <input type="submit" value="Submit" />
+            <input id="editbtn" type="button" value="Edit" />
+            <input id="addbtn" type="button" value="Add New" />
         </form>
 
         <script>
-            var edit_row = document.querySelectorAll('.edit');
-            for (var i=0; i<edit_row.length; i++) {
-                edit_row[i].addEventListener('click', function(e) {
-                    var parent = this.parentNode;
-                    document.getElementById('eid').value = parent.querySelector('.id').innerHTML
-                    document.getElementById('enumber').value = parent.querySelector('.number').innerHTML;
-                    document.getElementById('elatitude').value = parent.querySelector('.latitude').innerHTML;
-                    document.getElementById('elongitude').value = parent.querySelector('.longitude').innerHTML;
-                    document.getElementById('epath_side').value = parent.querySelector('.path_side').innerHTML;
-                    document.getElementById('ebroken').checked = parent.querySelector('.broken').innerHTML == "True";
-                    document.getElementById('emoved').checked = parent.querySelector('.moved').innerHTML == "True";
+
+            function link_edit() {
+                $('.edit').click(function() {
+                        var parent = $(this).parent();
+                        document.getElementById('eid').value = parent.attr('id');
+                        document.getElementById('enumber').value = parent.find('.number').text();
+                        document.getElementById('elatitude').value = parent.find('.latitude').text();
+                        document.getElementById('elongitude').value = parent.find('.longitude').text();
+                        document.getElementById('epath_side').value = parent.find('.side').text();
+                        document.getElementById('ebroken').checked = parent.find('.broken').text() == "yes";
+                        document.getElementById('emoved').checked = parent.find('.moved').text() == "yes";
+                });
+            }
+        </script>
+
+        <script>
+            $('document').ready(function(){
+                refresh_traps();
+            });
+
+            $('#editbtn').click(function(){
+                console.log('submitted');
+                var trap = get_new_trap_data()
+                submit_trap(trap);
+            });
+
+            $('#addbtn').click(function(){
+                console.log('submitted');
+                var trap = get_new_trap_data()
+                delete trap['id'];
+                trap['lineId'] = {{line_id}};
+                submit_trap(trap);
+            });
+
+            function get_new_trap_data() {
+                var trap = {};
+                trap['id'] = parseInt(document.getElementById('eid').value);
+                trap['rebaitTime'] = Math.floor(Date.now() / 1000);
+                trap['number'] = parseInt(document.getElementById('enumber').value);
+                trap['latitude'] = parseFloat(document.getElementById('elatitude').value);
+                trap['longitude'] = parseFloat(document.getElementById('elongitude').value);
+                trap['side'] = document.getElementById('epath_side').value==='Left';
+                trap['broken'] = document.getElementById('ebroken').checked;
+                trap['moved'] = document.getElementById('emoved').checked;
+                return trap;
+            }
+
+            function submit_trap(trap) {
+                put_data = {'lineId': {{line_id}}, 'password': 'password', 'traps': [trap]};
+                // TODO: get password from cookie or something, generated when logging in, request login if not present
+
+                $.ajax({
+                    type: "PUT",
+                    url: "/api/trap",
+                    contentType: "application/json",
+                    data: JSON.stringify(put_data),
+                    error: function(xhr, status, error) {
+                        console.log(xhr.responseText);
+                    }
+                }).done(function(data, statusText, xhr){
+                    var status = xhr.status;                //200
+                    var head = xhr.getAllResponseHeaders(); //Detail header info
+                    console.log(status);
+                    console.log(data);
+                });
+
+                refresh_traps();
+            }
+
+            function refresh_traps(){
+                $.ajax({
+                    type: "GET",
+                    url: "/api/trap?line_id={{line_id}}",
+                }).done(function(data, statusText, xhr){
+                    var status = xhr.status;                //200
+                    var head = xhr.getAllResponseHeaders(); //Detail header info
+                    console.log(status);
+                    console.log(data);
+                    if (status==200) {
+                        data = data['result']
+                        keys = ['number', 'latitude', 'longitude', 'side', 'broken', 'moved'];
+                        headings = ['Number', 'Latitude', 'Longitude', 'Path Side', 'Broken', 'Moved', ''];
+
+                        make_table('trap_table', data, keys, headings)
+                    }
+                    link_edit();
+                });
+            }
+
+            function make_table(table_id, data, keys, headings) {
+                //not sure how easily reusable this is atm for catches
+                //but can make it more general if needed
+                //possibly move to base.html
+                var tbl_body = document.getElementById(table_id);
+                var tbl_row = "";
+                headings.forEach(function(h) {
+                    tbl_row += "<th class=\"left\">"+h+"</th>";
+                });
+                tbl_body += "<tr>" + tbl_row + "</tr>";
+                var odd_even = false;
+                data.forEach(function(trap) {
+                    var tbl_row = "";
+                    keys.forEach(function(k) {
+                        var v = trap[k];
+                        switch(k) {
+                            case 'side':
+                                v = v ? 'Left' : 'Right';
+                                break;
+                            case 'broken':
+                            case 'moved':
+                                v = v ? 'yes' : 'no';
+                                break;
+                            default:
+                                break;
+                        }
+                        tbl_row += "<td class=\""+k+"\">"+v+"</td>";
+                    })
+                    tbl_row += "<td class=\"edit\" style=\"cursor:pointer;\">Edit</td>"
+                    tbl_body += "<tr id=\""+trap['id']+"\" class=\""+( odd_even ? "odd" : "even")+"\">"+tbl_row+"</tr>";
+                    odd_even = !odd_even;
                 })
+                $("#"+table_id+" tbody").html(tbl_body);
             }
         </script>
 
