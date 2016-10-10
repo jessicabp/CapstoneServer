@@ -65,3 +65,9 @@ class CreateLineForm(FlaskForm):
     animal2 = StringField("Animal Preference", validators=[DataRequired()], render_kw={"placeholder": "Animal preference 2"})
     animal3 = StringField("Animal Preference", validators=[DataRequired()], render_kw={"placeholder": "Animal preference 3"})
     recaptcha = RecaptchaField()
+
+class SettingsForm(FlaskForm):
+    oldUPassword = PasswordField("User Password", render_kw={"placeholder": "Enter old user password"})
+    newUPassword = PasswordField("re_uPassword", render_kw={"placeholder": "Enter new user password"})
+    oldAPassword = PasswordField("Admin Password", render_kw={"placeholder": "Enter old admin password"})
+    newAPassword = PasswordField("re_aPassword", render_kw={"placeholder": "Enter new admin password"})

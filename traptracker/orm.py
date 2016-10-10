@@ -27,7 +27,21 @@ def create_hashed_line(name, uPassword, aPassword, animal1, animal2, animal3):
 
 
 # Object defs
-class Line(Base, UserMixin):
+class User(Base, UserMixin):
+    __tablename__ = 'user'
+    id = Column(Integer, primary_key=True)
+    line_id = Column(Integer, ForeignKey("line.id"))
+    auth = Column(Integer)
+
+    def __init__(self, line_id, auth):
+        self.line_id = line_id
+        self.auth = auth
+
+    def get_id(self):
+        return str(self.id)
+
+
+class Line(Base):
     __tablename__ = 'line'
     id = Column(Integer, primary_key=True)
     name = Column(String(80), unique=True)
@@ -49,9 +63,6 @@ class Line(Base, UserMixin):
 
     def __repr__(self):
         return "<Line id:{} name:{}>".format(self.id, self.name)
-
-    def get_id(self):
-        return str(self.id)
 
     def getDict(self):
         return {'id': self.id,

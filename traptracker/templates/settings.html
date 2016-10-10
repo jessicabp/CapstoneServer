@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block body %}
+    <h1>Settings</h1>
+
+    <form method = "post">
+        {{ form.csrf_token }}
+
+        {{ form.oldUPassword.label }} <br>
+        {{ form.oldUPassword }} <br>
+        {{ form.newUPassword }} <br><br>
+
+        {{ form.oldAPassword.label }} <br>
+        {{ form.oldAPassword }} <br>
+        {{ form.newAPassword }} <br><br>
+        <input type="submit" value="Submit" />
+      </form>
+
+{% endblock %}
