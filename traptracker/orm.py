@@ -64,7 +64,6 @@ class Line(Base, UserMixin):
 class Trap(Base):
     __tablename__ = "trap"
     id = Column(Integer, primary_key=True)
-    rebait_time = Column(BigInteger)
     lat = Column(Float)
     long = Column(Float)
     line_id = Column(Integer, ForeignKey("line.id"))
@@ -73,8 +72,7 @@ class Trap(Base):
     broken = Column(Boolean)
     moved = Column(Boolean)
 
-    def __init__(self, rebait_time, lat, long, line_id, line_order, path_side):
-        self.rebait_time = rebait_time
+    def __init__(self, lat, long, line_id, line_order, path_side):
         self.lat = lat
         self.long = long
         self.line_id = line_id
@@ -89,7 +87,6 @@ class Trap(Base):
 
     def getDict(self):
         return {'id': self.id,
-                'rebaitTime': self.rebait_time,
                 'latitude': self.lat,
                 'longitude': self.long,
                 'lineId': self.line_id,
