@@ -1,6 +1,32 @@
 {% extends "base.html" %}
 {% block body %}
     <h1>Traps in {{name}}</h1>
+    {% if current_user.auth == 2 %}
+        <form id="trap_form">
+            <h2>Add Trap</h2>
+            <input type="hidden" id="eid" name="eid" value="" />
+            <label for="enumber">Number:</label>
+            <input type="text" id="enumber" name="enumber" placeholder="number" />
+            <label for="elatitude">Latitude:</label>
+            <input type="text" id="elatitude" name="elatitude" placeholder="latitude" />
+            <label for="elongitude">Longitude:</label>
+            <input type="text" id="elongitude" name="elongitude" placeholder="longitude" />
+            <label for="epath_side">Path Side:</label>
+            <select id="epath_side" name="epath_side">
+                <option value="Left">Left</option>
+                <option value="Right">Right</option>
+            </select><br>
+            <label for="ebroken">Broken:</label>
+            <input type="checkbox" id="ebroken" name="ebroken" /><br>
+            <label for="emoved">Moved:</label>
+            <input type="checkbox" id="emoved" name="emoved" /><br>
+            <input id="editbtn" type="button" value="Edit" />
+            <input id="addbtn" type="button" value="Add New" />
+        </form>
+    {% endif %}
+
+
+
     <table id="trap_table">
     <tr>
         <th hidden>ID</th>
@@ -14,23 +40,6 @@
     </tr>
     </table>
 
-    {% if current_user.auth == 2 %}
-        <form id="trap_form">
-            <input type="hidden" id="eid" name="eid" value="" />
-            Number
-            <input type="text" id="enumber" name="enumber" placeholder="number" /><br>
-            Latitude
-            <input type="text" id="elatitude" name="elatitude" placeholder="latitude" /><br>
-            Longitude
-            <input type="text" id="elongitude" name="elongitude" placeholder="longitude" /><br>
-            Path Side
-            <input type="text" id="epath_side" name="epath_side" placeholder="path_side" /><br>
-            <input type="checkbox" id="ebroken" name="ebroken" />Broken<br>
-            <input type="checkbox" id="emoved" name="emoved" />Moved<br>
-            <input id="editbtn" type="button" value="Edit" />
-            <input id="addbtn" type="button" value="Add New" />
-        </form>
-    {% endif %}
 
     <script>
         function link_edit() {
@@ -158,7 +167,7 @@
     </script>
 
 
-    <div id="map" style="width: 600px; height: 400px;"></div>
+    <div id="map"></div>
 
 
     <script type="text/javascript">
