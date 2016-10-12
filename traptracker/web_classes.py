@@ -1,4 +1,3 @@
-import math
 from flask import render_template, request, redirect, url_for, send_file, flash, session
 import flask_login
 
@@ -11,6 +10,8 @@ from datetime import datetime
 from io import BytesIO
 import xlsxwriter
 import string
+import hashlib
+import binascii
 
 
 @loginManager.user_loader
@@ -167,14 +168,40 @@ def settings(number):
     form = SettingsForm()
 
     if form.validate_on_submit():
+        userChange = False
+        adminChange = False
+
         if form.oldUPassword.data and form.newUPassword.data:
-            pass # TODO: Change passwords if given
+            if authenticate(number, form.oldUPassword.data) == AUTH_CATCH:
+                userChange = True
 
         if form.oldAPassword.data and form.newAPassword.data:
-            pass # TODO: Change passwords if given
+            if authenticate(number, form.oldAPassword.data) == AUTH_LINE:
+                adminChange = True
 
-        flash("Changes to line made", "confirm")
-        return render_template("settings.html", form=form)
+        if userChange or adminChange:
+            sess = orm.get_session()
+            line = sess.query(Line).filter_by(id=number).first()
+            if userChange:
+                hashed = hashlib.pbkdf2_hmac('sha1', str.encode(form.newUPassword.data),
+                                             binascii.unhexlify(line.salt), 100000)
+                line.password_hashed = binascii.hexlify(hashed).decode("utf-8")
+
+            if adminChange:
+                hashed = hashlib.pbkdf2_hmac('sha1', str.encode(form.newAPassword.data),
+                                                                 binascii.unhexlify(line.salt), 100000)
+                line.admin_password_hashed = binascii.hexlify(hashed).decode("utf-8")
+
+            sess.add(line)
+            sess.commit()
+            sess.close()
+
+            flash("Changes to line made", "confirm")
+            return render_template("settings.html", form=form)
+
+        else:
+            flash("Incorrect password given", "error")
+            return render_template("settings.html", form=form)
 
     # GET Request
     return render_template("settings.html", form=form)

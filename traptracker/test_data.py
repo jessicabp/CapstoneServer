@@ -16,7 +16,7 @@ def pushData(bitAdd):
         dataList.extend([create_hashed_line("Manatawu Gorge", "password", "!s0meth@ng", 3, 2, 4),
                          User(1, 1), User(1, 2),
                          create_hashed_line("Kaimais", "UPPERCASE", "whatsup?", 1, 2, 3),
-                         User(1, 1), User(1, 2)])
+                         User(2, 1), User(2, 2)])
 
     if bitAdd[1] == "1":
         dataList.extend([Trap(1474530992, -40.311121, 175.777068, 1, 1, 1),
