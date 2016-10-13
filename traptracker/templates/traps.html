@@ -2,8 +2,11 @@
 {% block body %}
     <h1>Traps in {{name}}</h1>
     {% if traps %}
+        <input id="addbtn" type="button" value="Add New" />
+        <input id="deletebtn" type="button" value="Delete" />
         <table id="trap_table">
             <thead><tr>
+                <th>ID</th>
                 <th class="left">Number</th>
                 <th class="left">Latitude</th>
                 <th class="left">Longitude</th>
@@ -27,28 +30,63 @@
             <input type="text" id="epath_side" name="epath_side" placeholder="path_side" /><br>
             <input type="checkbox" id="ebroken" name="ebroken" />Broken<br>
             <input type="checkbox" id="emoved" name="emoved" />Moved<br>
-            <input id="editbtn" type="button" value="Edit" />
-            <input id="addbtn" type="button" value="Add New" />
+            <input id="submitbtn" type="button" value="Submit" />
         </form>
 
         <script>
-            var datatable = null;
+            var table = null;
+            var adding = false;
             $('document').ready(function(){
                 refresh_traps();
-            });
 
-            $('#editbtn').click(function(){
-                console.log('submitted');
-                var trap = get_new_trap_data()
-                submit_trap(trap);
-            });
+                $('#trap_table tbody').on( 'click', 'tr', function () {
+                    if ( $(this).hasClass('selected') ) {
+                        $(this).removeClass('selected');
+                    }
+                    else {
+                        adding = false;
+                        table.$('tr.selected').removeClass('selected');
+                        $(this).addClass('selected');
+                        data = table.row('.selected').data();
+                        document.getElementById('eid').value = data['id'];
+                        document.getElementById('enumber').value = data['number'];
+                        document.getElementById('elatitude').value = data['latitude'];
+                        document.getElementById('elongitude').value = data['longitude'];
+                        document.getElementById('epath_side').value = data['side'];
+                        document.getElementById('ebroken').checked = data['broken'];
+                        document.getElementById('emoved').checked = data['moved'];
+                    }
+                } );
 
-            $('#addbtn').click(function(){
-                console.log('submitted');
-                var trap = get_new_trap_data()
-                delete trap['id'];
-                trap['lineId'] = {{line_id}};
-                submit_trap(trap);
+                $('#deletebtn').click( function () {
+                    //table.row('.selected').remove().draw( false );
+                    data = table.row('.selected').data();
+                    delete_trap(data);
+                } );
+
+                $('#addbtn').click(function(){
+                    //TODO: maybe display a message while in adding mode
+                    adding = true;
+                    document.getElementById("trap_form").reset();
+                    //console.log('submitted');
+                    //var trap = get_new_trap_data()
+                    //delete trap['id'];
+                    //trap['lineId'] = {{line_id}};
+                    //submit_trap(trap);
+                });
+
+                $('#submitbtn').click(function(){
+                    if (adding) {
+                        var trap = get_new_trap_data()
+                        delete trap['id'];
+                        trap['lineId'] = {{line_id}};
+                        submit_trap(trap);
+                        adding = false;
+                    } else {
+                        var trap = get_new_trap_data()
+                        submit_trap(trap);
+                    }
+                });
             });
 
             function get_new_trap_data() {
@@ -81,9 +119,32 @@
                     var head = xhr.getAllResponseHeaders(); //Detail header info
                     console.log(status);
                     console.log(data);
+                    refresh_traps();
                 });
+            }
 
-                refresh_traps();
+            function delete_trap(trap) {
+                var retVal = confirm("Are you sure you want to delete the selected trap?");
+                if( retVal!=true){
+                    return false;
+                }
+                delete_data = {'lineId': {{line_id}}, 'password': 'password', 'traps': [trap['id']]};
+                $.ajax({
+                    type: "DELETE",
+                    url: "/api/trap",
+                    contentType: "application/json",
+                    data: JSON.stringify(delete_data),
+                    error: function(xhr, status, error) {
+                        console.log(xhr.responseText);
+                    }
+                }).done(function(data, statusText, xhr){
+                    var status = xhr.status;                //200
+                    var head = xhr.getAllResponseHeaders(); //Detail header info
+                    console.log(status);
+                    console.log(data);
+                    refresh_traps();
+                });
+                return true;
             }
 
             function refresh_traps(){
@@ -99,72 +160,34 @@
                         data = data['result']
                         keys = ['number', 'latitude', 'longitude', 'side', 'broken', 'moved'];
 
-                        make_table('trap_table', data, keys);
                         // TODO: change the way the table is populated to use https://datatables.net/reference/api/rows.add()
-                        if (datatable==null){
-                            datatable = $('#trap_table').DataTable({
+                        if (table==null){
+                            function bool2YesNo(data, type, full, meta){return data ? "Yes" : "No";}
+                            function bool2LeftRight(data, type, full, meta){return data ? "Left" : "Right";}
+                            table = $('#trap_table').DataTable({
                                 "columns": [
-                                    {"name": "number", "orderable": true},
-                                    {"name": "latitude", "orderable": true},
-                                    {"name": "longitude", "orderable": true},
-                                    {"name": "side", "orderable": false},
-                                    {"name": "broken", "orderable": true},
-                                    {"name": "moved", "orderable": true},
-                                    {"name": "edit", "orderable": false}
+                                    {"data": "id", "orderable": false, "visible": false},
+                                    {"data": "number", "orderable": true},
+                                    {"data": "latitude", "orderable": true},
+                                    {"data": "longitude", "orderable": true},
+                                    {"data": "side", "orderable": false, "render": bool2LeftRight},
+                                    {"data": "broken", "orderable": true, "render": bool2YesNo},
+                                    {"data": "moved", "orderable": true, "render": bool2YesNo}
                                 ],
-                                "order": [[0, 'asc']],
+                                "order": [[1, 'asc']],
                                 paging: true,
                                 searching: true
                             });
-                        } else {
-                            datatable.draw();
                         }
+                        make_table('trap_table', data, keys);
                     }
-                    link_edit();
-                });
-            }
-
-            function link_edit() {
-                $('.edit').click(function() {
-                        var parent = $(this).parent();
-                        document.getElementById('eid').value = parent.attr('id');
-                        document.getElementById('enumber').value = parent.find('.number').text();
-                        document.getElementById('elatitude').value = parent.find('.latitude').text();
-                        document.getElementById('elongitude').value = parent.find('.longitude').text();
-                        document.getElementById('epath_side').value = parent.find('.side').text();
-                        document.getElementById('ebroken').checked = parent.find('.broken').text() == "yes";
-                        document.getElementById('emoved').checked = parent.find('.moved').text() == "yes";
                 });
             }
 
             function make_table(table_id, data, keys) {
-                //not sure how easily reusable this is atm for catches
-                //but can make it more general if needed
-                //possibly move to base.html
-                var tbl_body = "";
-                var odd_even = false;
-                data.forEach(function(trap) {
-                    var tbl_row = "";
-                    keys.forEach(function(k) {
-                        var v = trap[k];
-                        switch(k) {
-                            case 'side':
-                                v = v ? 'Left' : 'Right';
-                                break;
-                            case 'broken':
-                            case 'moved':
-                                v = v ? 'yes' : 'no';
-                                break;
-                            default:
-                                break;
-                        }
-                        tbl_row += "<td class=\""+k+"\">"+v+"</td>";
-                    })
-                    tbl_row += "<td class=\"edit\" style=\"cursor:pointer;\">Edit</td>"
-                    tbl_body += "<tr id=\""+trap['id']+"\" class=\""+( odd_even ? "odd" : "even")+"\">"+tbl_row+"</tr>";
-                    odd_even = !odd_even;
-                })
-                $("#"+table_id+" tbody").html(tbl_body);
+                table.clear();
+                table.rows.add(data);
+                table.draw();
             }
         </script>
 

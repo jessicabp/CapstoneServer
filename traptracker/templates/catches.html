@@ -1,9 +1,12 @@
 {% extends "base.html" %}
 {% block body %}
-    <h1>Captures for {{name}}</h1>
+    <h1>Catches for {{name}}</h1>
     {% if catches %}
+        <input id="addbtn" type="button" value="Add New" />
+        <input id="deletebtn" type="button" value="Delete" />
         <table id="catch_table">
         <thead><tr>
+            <th>ID</th>
             <th class="left">Date</th>
             <th class="left">Trap Number</th>
             <th class="left">Animal</th>
@@ -12,7 +15,7 @@
         <tbody></tbody>
         </table>
 
-        <form id="capture_form">
+        <form id="catch_form">
             <input type="hidden" id="eid" name="eid" value="" />
             Time
             <input type="text" id="etime" name="etime" placeholder="Time" /><br>
@@ -20,43 +23,93 @@
             <input type="text" id="etrapid" name="etrapid" placeholder="Trap ID" /><br>
             Animal
             <input type="text" id="eanimalid" name="eanimalid" placeholder="Animal ID" /><br>
-            <input id="editbtn" type="button" value="Edit" />
-            <input id="addbtn" type="button" value="Add New" />
+            <input id="submitbtn" type="button" value="Submit" />
         </form>
 
         <a class="button" href="/export/{{number}}">Export data</a>
 
         <script>
-            var datatable = null;
+            var table = null;
             $('document').ready(function(){
-                refresh_captures();
+                refresh_catches();
+
+                $('#catch_table tbody').on( 'click', 'tr', function () {
+                    if ( $(this).hasClass('selected') ) {
+                        $(this).removeClass('selected');
+                    }
+                    else {
+                        adding = false;
+                        table.$('tr.selected').removeClass('selected');
+                        $(this).addClass('selected');
+                        data = table.row('.selected').data();
+                        document.getElementById('eid').value = data['id'];
+                        document.getElementById('etime').value = data['time'];
+                        document.getElementById('etrapid').value = data['trapId'];
+                        document.getElementById('eanimalid').value = data['animalId'];
+                    }
+                } );
+
+                $('#deletebtn').click( function () {
+                    //table.row('.selected').remove().draw( false );
+                    data = table.row('.selected').data();
+                    delete_catch(data);
+                } );
+
+                $('#addbtn').click(function(){
+                    //TODO: maybe display a message while in adding mode
+                    adding = true;
+                    document.getElementById("catch_form").reset();
+                });
+
+                $('#submitbtn').click(function(){
+                    if (adding) {
+                        var cat = get_new_catch_data()
+                        delete cat['id'];
+                        cat['lineId'] = {{line_id}};
+                        submit_catch(cat);
+                        adding = false;
+                    } else {
+                        var cat = get_new_catch_data()
+                        submit_catch(cat);
+                    }
+                });
             });
 
-            $('#editbtn').click(function(){
-                console.log('submitted');
-                var capture = get_new_capture_data()
-                submit_capture(capture);
-            });
-
-            $('#addbtn').click(function(){
-                console.log('submitted');
-                var capture = get_new_capture_data()
-                delete capture['id'];
-                capture['lineId'] = {{line_id}};
-                submit_capture(capture);
-            });
-
-            function get_new_capture_data() {
-                var capture = {};
-                capture['id'] = parseInt(document.getElementById('eid').value);
-                capture['trapId'] = parseInt(document.getElementById('etrapid').value);
-                capture['animalId'] = parseInt(document.getElementById('eanimalid').value);
-                capture['time'] = parseInt(document.getElementById('etime').value);
-                return capture;
+            function get_new_catch_data() {
+                var cat = {};
+                cat['id'] = parseInt(document.getElementById('eid').value);
+                cat['trapId'] = parseInt(document.getElementById('etrapid').value);
+                cat['animalId'] = parseInt(document.getElementById('eanimalid').value);
+                cat['time'] = parseInt(document.getElementById('etime').value);
+                return cat;
             }
 
-            function submit_capture(capture) {
-                put_data = {'lineId': {{line_id}}, 'password': 'password', 'catches': [capture]};
+            function delete_catch(cat) {
+                var retVal = confirm("Are you sure you want to delete the selected catch?");
+                if( retVal!=true){
+                    return false;
+                }
+                delete_data = {'lineId': {{line_id}}, 'password': 'password', 'catches': [cat['id']]};
+                $.ajax({
+                    type: "DELETE",
+                    url: "/api/catch",
+                    contentType: "application/json",
+                    data: JSON.stringify(delete_data),
+                    error: function(xhr, status, error) {
+                        console.log(xhr.responseText);
+                    }
+                }).done(function(data, statusText, xhr){
+                    var status = xhr.status;                //200
+                    var head = xhr.getAllResponseHeaders(); //Detail header info
+                    console.log(status);
+                    console.log(data);
+                    refresh_catches();
+                });
+                return true;
+            }
+
+            function submit_catch(cat) {
+                put_data = {'lineId': {{line_id}}, 'password': 'password', 'catches': [cat]};
                 // TODO: get password from cookie or something, generated when logging in, request login if not present
 
                 $.ajax({
@@ -74,10 +127,10 @@
                     console.log(data);
                 });
 
-                refresh_captures();
+                refresh_catches();
             }
 
-            function refresh_captures(){
+            function refresh_catches(){
                 $.ajax({
                     type: "GET",
                     url: "/api/catch?line_id={{line_id}}",
@@ -90,68 +143,32 @@
                         data = data['result']
                         keys = ['time','trapId','animalId'];
 
-                        make_table('catch_table', data, keys);
-                        if (datatable==null){
-                            datatable = $('#catch_table').DataTable({
+                        // TODO: change the way the table is populated to use https://datatables.net/reference/api/rows.add()
+                        if (table==null){
+                            table = $('#catch_table').DataTable({
                                 "columns": [
-                                    {"name": "time", "orderable": true},
-                                    {"name": "trapId", "orderable": true},
-                                    {"name": "animalId", "orderable": true},
-                                    {"name": "edit", "orderable": false}
+                                    {"data": "id", "orderable": false, "visible": false},
+                                    {"data": "time", "orderable": true},
+                                    {"data": "trapId", "orderable": true},
+                                    {"data": "animalId", "orderable": true}
                                 ],
-                                "order": [[0, 'asc']],
+                                "order": [[1, 'asc']],
                                 paging: true,
                                 searching: true
                             });
-                        } else {
-                            datatable.draw();
                         }
+                        make_table('catch_table', data, keys);
                     }
-                    link_edit();
-                });
-            }
-
-            function link_edit() {
-                $('.edit').click(function() {
-                        var parent = $(this).parent();
-                        document.getElementById('eid').value = parent.attr('id');
-                        document.getElementById('etrapid').value = parent.find('.trapId').text();
-                        document.getElementById('eanimalid').value = parent.find('.animalId').text();
-                        document.getElementById('etime').value = parent.find('.time').text();
                 });
             }
 
             function make_table(table_id, data, keys) {
-                //not sure how easily reusable this is atm for catches
-                //but can make it more general if needed
-                //possibly move to base.html
-                var tbl_body = "";
-                var odd_even = false;
-                data.forEach(function(row) {
-                    var tbl_row = "";
-                    keys.forEach(function(k) {
-                        var v = row[k];
-                        switch(k) {
-                            case 'side':
-                                v = v ? 'Left' : 'Right';
-                                break;
-                            case 'broken':
-                            case 'moved':
-                                v = v ? 'yes' : 'no';
-                                break;
-                            default:
-                                break;
-                        }
-                        tbl_row += "<td class=\""+k+"\">"+v+"</td>";
-                    })
-                    tbl_row += "<td class=\"edit\" style=\"cursor:pointer;\">Edit</td>"
-                    tbl_body += "<tr id=\""+row['id']+"\" class=\""+( odd_even ? "odd" : "even")+"\">"+tbl_row+"</tr>";
-                    odd_even = !odd_even;
-                })
-                $("#"+table_id+" tbody").html(tbl_body);
+                table.clear();
+                table.rows.add(data);
+                table.draw();
             }
         </script>
     {% else %}
-        No captures have been recorded for this line
+        No catchess have been recorded for this line
     {% endif %}
 {% endblock %}
