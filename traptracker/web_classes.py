@@ -118,6 +118,7 @@ def create():
 def catches(number):
     sess = orm.get_session()
     result = render_template("catches.html",
+                line_id = number,
                 catches=sess.query(Catch, Trap, Animal).join(Trap).join(Animal).filter(Trap.line_id == number).all(),
                 name=sess.query(Line).filter_by(id=number).first().name,
                 number=number,

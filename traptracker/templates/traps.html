@@ -3,16 +3,16 @@
     <h1>Traps in {{name}}</h1>
     {% if traps %}
         <table id="trap_table">
-        <tr>
-            <th hidden>ID</th>
-            <th class="left">Number</th>
-            <th class="left">Latitude</th>
-            <th class="left">Longitude</th>
-            <th class="left">Path Side</th>
-            <th class="left">Broken</th>
-            <th class="left">Moved</th>
-            <th class="left"></th>
-        </tr>
+            <thead><tr>
+                <th class="left">Number</th>
+                <th class="left">Latitude</th>
+                <th class="left">Longitude</th>
+                <th class="left">Path Side</th>
+                <th class="left">Broken</th>
+                <th class="left">Moved</th>
+                <th class="left"></th>
+            </tr></thead>
+            <tbody></tbody>
         </table>
 
         <form id="trap_form">
@@ -32,22 +32,7 @@
         </form>
 
         <script>
-
-            function link_edit() {
-                $('.edit').click(function() {
-                        var parent = $(this).parent();
-                        document.getElementById('eid').value = parent.attr('id');
-                        document.getElementById('enumber').value = parent.find('.number').text();
-                        document.getElementById('elatitude').value = parent.find('.latitude').text();
-                        document.getElementById('elongitude').value = parent.find('.longitude').text();
-                        document.getElementById('epath_side').value = parent.find('.side').text();
-                        document.getElementById('ebroken').checked = parent.find('.broken').text() == "yes";
-                        document.getElementById('emoved').checked = parent.find('.moved').text() == "yes";
-                });
-            }
-        </script>
-
-        <script>
+            var datatable = null;
             $('document').ready(function(){
                 refresh_traps();
             });
@@ -113,24 +98,50 @@
                     if (status==200) {
                         data = data['result']
                         keys = ['number', 'latitude', 'longitude', 'side', 'broken', 'moved'];
-                        headings = ['Number', 'Latitude', 'Longitude', 'Path Side', 'Broken', 'Moved', ''];
 
-                        make_table('trap_table', data, keys, headings)
+                        make_table('trap_table', data, keys);
+                        // TODO: change the way the table is populated to use https://datatables.net/reference/api/rows.add()
+                        if (datatable==null){
+                            datatable = $('#trap_table').DataTable({
+                                "columns": [
+                                    {"name": "number", "orderable": true},
+                                    {"name": "latitude", "orderable": true},
+                                    {"name": "longitude", "orderable": true},
+                                    {"name": "side", "orderable": false},
+                                    {"name": "broken", "orderable": true},
+                                    {"name": "moved", "orderable": true},
+                                    {"name": "edit", "orderable": false}
+                                ],
+                                "order": [[0, 'asc']],
+                                paging: true,
+                                searching: true
+                            });
+                        } else {
+                            datatable.draw();
+                        }
                     }
                     link_edit();
                 });
             }
 
-            function make_table(table_id, data, keys, headings) {
+            function link_edit() {
+                $('.edit').click(function() {
+                        var parent = $(this).parent();
+                        document.getElementById('eid').value = parent.attr('id');
+                        document.getElementById('enumber').value = parent.find('.number').text();
+                        document.getElementById('elatitude').value = parent.find('.latitude').text();
+                        document.getElementById('elongitude').value = parent.find('.longitude').text();
+                        document.getElementById('epath_side').value = parent.find('.side').text();
+                        document.getElementById('ebroken').checked = parent.find('.broken').text() == "yes";
+                        document.getElementById('emoved').checked = parent.find('.moved').text() == "yes";
+                });
+            }
+
+            function make_table(table_id, data, keys) {
                 //not sure how easily reusable this is atm for catches
                 //but can make it more general if needed
                 //possibly move to base.html
-                var tbl_body = document.getElementById(table_id);
-                var tbl_row = "";
-                headings.forEach(function(h) {
-                    tbl_row += "<th class=\"left\">"+h+"</th>";
-                });
-                tbl_body += "<tr>" + tbl_row + "</tr>";
+                var tbl_body = "";
                 var odd_even = false;
                 data.forEach(function(trap) {
                     var tbl_row = "";

@@ -2,22 +2,155 @@
 {% block body %}
     <h1>Captures for {{name}}</h1>
     {% if catches %}
-        <table>
-        <tr>
+        <table id="catch_table">
+        <thead><tr>
             <th class="left">Date</th>
             <th class="left">Trap Number</th>
             <th class="left">Animal</th>
-        </tr>
-        {% for catch in catches %}
-            <tr>
-                <td>{{datetime.fromtimestamp(catch[0].time/1000).strftime("%d/%m/%y")}}</td>
-                <td>{{catch[1].line_order}}</td>
-                <td>{{catch[2].name}}</td>
-            </tr>
-        {% endfor %}
+            <th></th>
+        </tr></thead>
+        <tbody></tbody>
         </table>
 
+        <form id="capture_form">
+            <input type="hidden" id="eid" name="eid" value="" />
+            Time
+            <input type="text" id="etime" name="etime" placeholder="Time" /><br>
+            Trap ID
+            <input type="text" id="etrapid" name="etrapid" placeholder="Trap ID" /><br>
+            Animal
+            <input type="text" id="eanimalid" name="eanimalid" placeholder="Animal ID" /><br>
+            <input id="editbtn" type="button" value="Edit" />
+            <input id="addbtn" type="button" value="Add New" />
+        </form>
+
         <a class="button" href="/export/{{number}}">Export data</a>
+
+        <script>
+            var datatable = null;
+            $('document').ready(function(){
+                refresh_captures();
+            });
+
+            $('#editbtn').click(function(){
+                console.log('submitted');
+                var capture = get_new_capture_data()
+                submit_capture(capture);
+            });
+
+            $('#addbtn').click(function(){
+                console.log('submitted');
+                var capture = get_new_capture_data()
+                delete capture['id'];
+                capture['lineId'] = {{line_id}};
+                submit_capture(capture);
+            });
+
+            function get_new_capture_data() {
+                var capture = {};
+                capture['id'] = parseInt(document.getElementById('eid').value);
+                capture['trapId'] = parseInt(document.getElementById('etrapid').value);
+                capture['animalId'] = parseInt(document.getElementById('eanimalid').value);
+                capture['time'] = parseInt(document.getElementById('etime').value);
+                return capture;
+            }
+
+            function submit_capture(capture) {
+                put_data = {'lineId': {{line_id}}, 'password': 'password', 'catches': [capture]};
+                // TODO: get password from cookie or something, generated when logging in, request login if not present
+
+                $.ajax({
+                    type: "PUT",
+                    url: "/api/catch",
+                    contentType: "application/json",
+                    data: JSON.stringify(put_data),
+                    error: function(xhr, status, error) {
+                        console.log(xhr.responseText);
+                    }
+                }).done(function(data, statusText, xhr){
+                    var status = xhr.status;                //200
+                    var head = xhr.getAllResponseHeaders(); //Detail header info
+                    console.log(status);
+                    console.log(data);
+                });
+
+                refresh_captures();
+            }
+
+            function refresh_captures(){
+                $.ajax({
+                    type: "GET",
+                    url: "/api/catch?line_id={{line_id}}",
+                }).done(function(data, statusText, xhr){
+                    var status = xhr.status;                //200
+                    var head = xhr.getAllResponseHeaders(); //Detail header info
+                    console.log(status);
+                    console.log(data);
+                    if (status==200) {
+                        data = data['result']
+                        keys = ['time','trapId','animalId'];
+
+                        make_table('catch_table', data, keys);
+                        if (datatable==null){
+                            datatable = $('#catch_table').DataTable({
+                                "columns": [
+                                    {"name": "time", "orderable": true},
+                                    {"name": "trapId", "orderable": true},
+                                    {"name": "animalId", "orderable": true},
+                                    {"name": "edit", "orderable": false}
+                                ],
+                                "order": [[0, 'asc']],
+                                paging: true,
+                                searching: true
+                            });
+                        } else {
+                            datatable.draw();
+                        }
+                    }
+                    link_edit();
+                });
+            }
+
+            function link_edit() {
+                $('.edit').click(function() {
+                        var parent = $(this).parent();
+                        document.getElementById('eid').value = parent.attr('id');
+                        document.getElementById('etrapid').value = parent.find('.trapId').text();
+                        document.getElementById('eanimalid').value = parent.find('.animalId').text();
+                        document.getElementById('etime').value = parent.find('.time').text();
+                });
+            }
+
+            function make_table(table_id, data, keys) {
+                //not sure how easily reusable this is atm for catches
+                //but can make it more general if needed
+                //possibly move to base.html
+                var tbl_body = "";
+                var odd_even = false;
+                data.forEach(function(row) {
+                    var tbl_row = "";
+                    keys.forEach(function(k) {
+                        var v = row[k];
+                        switch(k) {
+                            case 'side':
+                                v = v ? 'Left' : 'Right';
+                                break;
+                            case 'broken':
+                            case 'moved':
+                                v = v ? 'yes' : 'no';
+                                break;
+                            default:
+                                break;
+                        }
+                        tbl_row += "<td class=\""+k+"\">"+v+"</td>";
+                    })
+                    tbl_row += "<td class=\"edit\" style=\"cursor:pointer;\">Edit</td>"
+                    tbl_body += "<tr id=\""+row['id']+"\" class=\""+( odd_even ? "odd" : "even")+"\">"+tbl_row+"</tr>";
+                    odd_even = !odd_even;
+                })
+                $("#"+table_id+" tbody").html(tbl_body);
+            }
+        </script>
     {% else %}
         No captures have been recorded for this line
     {% endif %}
