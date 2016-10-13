@@ -198,7 +198,6 @@ textarea {
 table {
     border-collapse: collapse;
     width: 50%;
-    float: left;
     margin-bottom: 15px;
 }
 
@@ -226,6 +225,10 @@ tr:not(:first-child):hover {
 
 .center {
     text-align: center;
+}
+
+#trap_table {
+    float: left;
 }
 
 /* ******************************* */

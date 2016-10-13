@@ -1,4 +1,4 @@
-from flask import render_template, request, redirect, url_for, send_file, flash, session
+from flask import render_template, request, redirect, url_for, send_file, flash, session, make_response
 import flask_login
 
 import traptracker.orm as orm
@@ -217,8 +217,7 @@ def export(number):
     traps = sess.query(Trap.line_order).filter_by(line_id=number).order_by(Trap.line_order.asc()).all()
 
     # Because it is returned in tuples
-    traps = [trap[0] for trap in traps]
-    print(traps)
+    traps = ["Traps"] + [str(trap[0]) for trap in traps]
 
     sess.close()
 
@@ -227,45 +226,30 @@ def export(number):
         flash("No catches has been recorded for this line", "error")
         return redirect(url_for("index"))
 
-
-    # Create xlsx writer and byte stream
-    output = BytesIO()
-    workbook = xlsxwriter.Workbook(output, {'in_memory': True})
-    worksheet = workbook.add_worksheet()
-
-    # Create formats
-    boldFormat = workbook.add_format({'bold': True})
-    dateFormat = workbook.add_format({'num_format': 'dd/mm/yy', 'bold': True})
-
-    row = 2
-    col = 0
-
-    # Write headers
-    worksheet.write('A1', line.name, boldFormat)
-    worksheet.write('A2', 'Traps', boldFormat)
-
-    # Write traps along the side
-    for trapi in traps:
-        worksheet.write(row, col, trapi)
-        row += 1
-
-    # Write data into table
-    col = 1
-    currentDate = datetime.fromtimestamp(int(catchData[0][0].time/1000))
+    # Get ready to export
+    exportData = [traps]
+    currentDate = datetime.fromtimestamp(int(catchData[0][0].time))
     cDateStr = currentDate.strftime("%d/%m/%y")
 
-    worksheet.write(1, col, currentDate, dateFormat)
+    period = [cDateStr] + ["" for i in range(len(traps)-1)]
 
     for catch in catchData:
-        wDate = datetime.fromtimestamp(int(catch[0].time/1000))
+        wDate = datetime.fromtimestamp(int(catch[0].time))
         wDateStr = wDate.strftime("%d/%m/%y")
         if wDateStr != cDateStr:
             cDateStr = wDateStr
-            col += 1
-            worksheet.write(1, col, wDate, dateFormat)
-        worksheet.write(2+traps.index(catch[1].line_order), col, catch[2].name)
+            exportData.append(period)
+            period = [cDateStr] + ["" for i in range(len(traps)-1)]
+        period[traps.index(str(catch[1].line_order))] = catch[2].name
 
-    # Wrap up and return file
-    workbook.close()
-    output.seek(0)
-    return send_file(output, attachment_filename="captures.xlsx", as_attachment="True")
+    # Add unadded period to the end
+    exportData.append(period)
+
+    # Transpose
+    exportData = list(map(list, zip(*exportData)))
+
+    # Make resposne and return
+    response = make_response(line.name + "\n" + "\n".join([",".join(l) for l in exportData]))
+    response.headers["Content-Disposition"] = "attachment; filename=captures.csv"
+    return response
+
