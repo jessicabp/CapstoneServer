@@ -8,7 +8,7 @@ from traptracker.auth import authenticate, AUTH_NONE, AUTH_CATCH, AUTH_LINE
 
 
 testLine = Line("Massey Uni Line", "1234", "5678", "", 1, 2, 3)
-testTrap = Trap(1473431831, -40.310124, 175.777104, 1, 5, 1)
+testTrap = Trap(-40.310124, 175.777104, 1, 5, 1)
 testCatch = Catch(1, 1, 1473431831)
 testAnimal1 = Animal("Possom")
 testAnimal2 = Animal("Ferret")
@@ -118,9 +118,8 @@ class TestTrapInterface(unittest.TestCase):
         entiresBefore = len(sess.query(Trap).all())
         jsonData = json.dumps({"lineId": 1,
                                "password": "!s0meth@ng",
-                               "traps": [
-                               {"rebaitTime": testTrap.rebait_time,
-                                "latitude": testTrap.lat,
+                                "traps": [
+                                {"latitude": testTrap.lat,
                                 "longitude": testTrap.long,
                                 "lineId": testTrap.line_id,
                                 "number": testTrap.line_order,
@@ -131,7 +130,6 @@ class TestTrapInterface(unittest.TestCase):
         # Test increase of one + data integrity of all data passed
         self.assertEqual(entiresBefore+1, len(sess.query(Trap).all()), "/trap did not add testTrap")
         trap = sess.query(Trap).filter_by(id=7).first()
-        self.assertEqual(trap.rebait_time, testTrap.rebait_time, "/trap rebait_time not stored correctly")
         self.assertEqual(trap.lat, testTrap.lat, "/trap lat not stored correctly")
         self.assertEqual(trap.long, testTrap.long, "/trap long not stored correctly")
         self.assertEqual(trap.line_id, testTrap.line_id, "/trap line_id not stored correctly")
@@ -142,9 +140,8 @@ class TestTrapInterface(unittest.TestCase):
     def testPut_NonListFailure(self):
         jsonData = json.dumps({"lineId": 1,
                                "password": "password",
-                               "traps":
-                               {"rebaitTime": testTrap.rebait_time,
-                                "latitude": testTrap.lat,
+                                "traps":
+                                {"latitude": testTrap.lat,
                                 "longitude": testTrap.long,
                                 "lineId": testTrap.line_id,
                                 "number": testTrap.line_order,
@@ -161,7 +158,7 @@ class TestTrapInterface(unittest.TestCase):
         self.assertIn("could not validate password", response.data.decode("utf-8"), "Wrong message given")
 
     def testPut_MissingKeyFailure(self):
-        jsonData = json.dumps({"lineId": 1, "password":"!s0meth@ng", "traps":[{"rebait_time": testTrap.rebait_time}]})
+        jsonData = json.dumps({"lineId": 1, "password":"!s0meth@ng", "traps":[{"lat": testTrap.lat}]})
         response = self.app.put(trapUrl, data=jsonData, content_type="application/json", base_url=baseUrl)
         self.assertEqual(response.status_code, 400, "Wrong error code returned with missing key")
         self.assertIn("could not enter trap into database", response.data.decode("utf-8"), "Wrong message given")
@@ -170,8 +167,8 @@ class TestTrapInterface(unittest.TestCase):
         sess = orm.get_session()
         entiresBefore = len(sess.query(Trap).all())
         jsonData = json.dumps({"lineId": 1,
-                               "password": "!s0meth@ng",
-                               "traps": [1,4]})
+                           "password": "!s0meth@ng",
+                           "traps": [1,4]})
         self.app.delete(trapUrl, data=jsonData, content_type="application/json", base_url=baseUrl)
         self.assertEqual(entiresBefore-2, len(sess.query(Trap).all()), "/trap DELETE did not delete traps")
         sess.close()
@@ -213,11 +210,11 @@ class TestCatchInterface(unittest.TestCase):
         sess = orm.get_session()
         entiresBefore = len(sess.query(Catch).all())
         jsonData = json.dumps({"lineId": 1,
-                               "password": "password",
-                               "catches": [{"trapId": testCatch.trap_id,
+                                "password": "password",
+                                "catches": [{"trapId": testCatch.trap_id,
                                             "animalId": testCatch.animal_id,
                                             "time": testCatch.time}]
-                               })
+                                })
         response = self.app.put(catchUrl, data=jsonData, content_type="application/json", base_url=baseUrl)
 
         # Test increase of one + data integrity of all data passed
@@ -230,11 +227,11 @@ class TestCatchInterface(unittest.TestCase):
 
     def testPut_NonListFailure(self):
         jsonData = json.dumps({"lineId": 1,
-                               "password": "password",
-                               "catches": {"trapId": testCatch.trap_id,
-                                           "animalId": testCatch.animal_id,
-                                           "time": testCatch.time}
-                               })
+                                "password": "password",
+                                "catches": {"trapId": testCatch.trap_id,
+                                            "animalId": testCatch.animal_id,
+                                            "time": testCatch.time}
+                                })
         response = self.app.put(catchUrl, data=jsonData, content_type="application/json", base_url=baseUrl)
         self.assertEqual(response.status_code, 400, "Wrong error code returned with non list for traps")
         self.assertIn("non iterable datatype passed with catches", response.data.decode("utf-8"), "Wrong message given")
