@@ -126,6 +126,7 @@ def create():
 def catches(number):
     sess = orm.get_session()
     result = render_template("catches.html",
+                line_id = number,
                 catches=sess.query(Catch, Trap, Animal).join(Trap).join(Animal).filter(Trap.line_id == number).all(),
                 name=sess.query(Line).filter_by(id=number).first().name,
                 number=number,
@@ -135,7 +136,7 @@ def catches(number):
 
 
 @app.route("/edit/<int:number>", methods=["GET"])
-@flask_login.login_required
+#@flask_login.login_required
 def traps(number):
     sess = orm.get_session()
     trapData = sess.query(Trap).filter_by(line_id=number).all()
