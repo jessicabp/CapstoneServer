@@ -1,12 +1,32 @@
 {% extends "base.html" %}
 {% block body %}
     <h1>Traps in {{name}}</h1>
-    {% if traps %}
+        <form id="trap_form">
+            <h2>Add Trap</h2>
+            <input type="hidden" id="eid" name="eid" value="" />
+            <label for="enumber">Number:</label>
+            <input type="text" id="enumber" name="enumber" placeholder="number" />
+            <label for="elatitude">Latitude:</label>
+            <input type="text" id="elatitude" name="elatitude" placeholder="latitude" />
+            <label for="elongitude">Longitude:</label>
+            <input type="text" id="elongitude" name="elongitude" placeholder="longitude" />
+            <label for="epath_side">Path Side:</label>
+            <select id="epath_side" name="epath_side">
+                <option value="Left">Left</option>
+                <option value="Right">Right</option>
+            </select><br>
+            <label for="ebroken">Broken:</label>
+            <input type="checkbox" id="ebroken" name="ebroken" /><br>
+            <label for="emoved">Moved:</label>
+            <input type="checkbox" id="emoved" name="emoved" /><br>
+            <input id="submitbtn" type="button" value="Submit" />
+        </form>
+
         <input id="addbtn" type="button" value="Add New" />
         <input id="deletebtn" type="button" value="Delete" />
         <table id="trap_table">
             <thead><tr>
-                <th>ID</th>
+                <th hidden>ID</th>
                 <th class="left">Number</th>
                 <th class="left">Latitude</th>
                 <th class="left">Longitude</th>
@@ -17,21 +37,6 @@
             </tr></thead>
             <tbody></tbody>
         </table>
-
-        <form id="trap_form">
-            <input type="hidden" id="eid" name="eid" value="" />
-            Number
-            <input type="text" id="enumber" name="enumber" placeholder="number" /><br>
-            Latitude
-            <input type="text" id="elatitude" name="elatitude" placeholder="latitude" /><br>
-            Longitude
-            <input type="text" id="elongitude" name="elongitude" placeholder="longitude" /><br>
-            Path Side
-            <input type="text" id="epath_side" name="epath_side" placeholder="path_side" /><br>
-            <input type="checkbox" id="ebroken" name="ebroken" />Broken<br>
-            <input type="checkbox" id="emoved" name="emoved" />Moved<br>
-            <input id="submitbtn" type="button" value="Submit" />
-        </form>
 
         <script>
             var table = null;
@@ -191,33 +196,30 @@
             }
         </script>
 
-        <div id="map" style="width: 600px; height: 400px;"></div>
+
+    <div id="map"></div>
 
 
-        <script type="text/javascript">
-            var map = new L.Map('map');
+    <script type="text/javascript">
+        var map = new L.Map('map');
 
-            // create the tile layer with correct attribution
-            var osm = new L.TileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                minZoom: 8,
-                maxZoom: 19,
-                attribution: 'Map data © <a href="http://openstreetmap.org">OpenStreetMap</a> contributors'});
+        // create the tile layer with correct attribution
+        var osm = new L.TileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            minZoom: 8,
+            maxZoom: 19,
+            attribution: 'Map data © <a href="http://openstreetmap.org">OpenStreetMap</a> contributors'});
 
-            // start the map in South-East England
-            map.setView(new L.LatLng({{avg[0]}}, {{avg[1]}}),15);
+        // start the map in South-East England
+        map.setView(new L.LatLng({{avg[0]}}, {{avg[1]}}),15);
 
 
-            {% for trap in traps %}
-                L.marker([{{trap.lat}}, {{trap.long}}]).addTo(map).bindPopup(
-                "Lat: {{trap.lat}}<br />" +
-                "Long: {{trap.long}}<br />" +
-                "Number: {{trap.line_order}}");
-            {% endfor %}
+        {% for trap in traps %}
+            L.marker([{{trap.lat}}, {{trap.long}}]).addTo(map).bindPopup(
+            "Lat: {{trap.lat}}<br />" +
+            "Long: {{trap.long}}<br />" +
+            "Number: {{trap.line_order}}");
+        {% endfor %}
 
-            map.addLayer(osm);
-        </script>
-
-    {% else %}
-        There are no traps currently on this line
-    {% endif %}
+        map.addLayer(osm);
+    </script>
 {% endblock %}

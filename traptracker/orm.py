@@ -27,7 +27,21 @@ def create_hashed_line(name, uPassword, aPassword, animal1, animal2, animal3):
 
 
 # Object defs
-class Line(Base, UserMixin):
+class User(Base, UserMixin):
+    __tablename__ = 'user'
+    id = Column(Integer, primary_key=True)
+    line_id = Column(Integer, ForeignKey("line.id"))
+    auth = Column(Integer)
+
+    def __init__(self, line_id, auth):
+        self.line_id = line_id
+        self.auth = auth
+
+    def get_id(self):
+        return str(self.id)
+
+
+class Line(Base):
     __tablename__ = 'line'
     id = Column(Integer, primary_key=True)
     name = Column(String(80), unique=True)
@@ -50,9 +64,6 @@ class Line(Base, UserMixin):
     def __repr__(self):
         return "<Line id:{} name:{}>".format(self.id, self.name)
 
-    def get_id(self):
-        return str(self.id)
-
     def getDict(self):
         return {'id': self.id,
                 'name': self.name,
@@ -64,7 +75,6 @@ class Line(Base, UserMixin):
 class Trap(Base):
     __tablename__ = "trap"
     id = Column(Integer, primary_key=True)
-    rebait_time = Column(BigInteger)
     lat = Column(Float)
     long = Column(Float)
     line_id = Column(Integer, ForeignKey("line.id"))
@@ -73,8 +83,7 @@ class Trap(Base):
     broken = Column(Boolean)
     moved = Column(Boolean)
 
-    def __init__(self, rebait_time, lat, long, line_id, line_order, path_side):
-        self.rebait_time = rebait_time
+    def __init__(self, lat, long, line_id, line_order, path_side):
         self.lat = lat
         self.long = long
         self.line_id = line_id
@@ -89,7 +98,6 @@ class Trap(Base):
 
     def getDict(self):
         return {'id': self.id,
-                'rebaitTime': self.rebait_time,
                 'latitude': self.lat,
                 'longitude': self.long,
                 'lineId': self.line_id,

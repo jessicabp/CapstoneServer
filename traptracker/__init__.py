@@ -31,7 +31,6 @@ logging.basicConfig(
 )
 logging.getLogger('sqlalchemy.engine').setLevel(logging.WARN)
 
-
 # Link URL to classes
 api.add_resource(LineInterface, "/api/line")
 api.add_resource(TrapInterface, "/api/trap")

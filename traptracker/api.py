@@ -147,7 +147,6 @@ class TrapInterface(Resource):
         Returns:
         - JSONObject: {'result': [Trap...]}
         - Trap Object: {'id': <int>,
-                        'rebaitTime': <long int>,
                         'latitude': <float>,
                         'longitude': <float>,
                         'lineId': <int>,
@@ -179,7 +178,6 @@ class TrapInterface(Resource):
                            "password": <string>,
                            "traps": [Trap...]}
             - Trap Object: {'id': <int>, (Optional: if given, overrides set in database. If excluded, creates new line)
-                            'rebaitTime': <long int>,
                             'latitude': <float>,
                             'longitude': <float>,
                             'lineId': <int>,
@@ -221,8 +219,7 @@ class TrapInterface(Resource):
 
                 else:  # Trap doesn't exist, create a new trap (adding requires line level auth)
                     if authenticate(json_data['lineId'], json_data['password']) >= AUTH_LINE:
-                        trap = Trap(trap_data['rebaitTime'],
-                                    trap_data['latitude'],
+                        trap = Trap(trap_data['latitude'],
                                     trap_data['longitude'],
                                     trap_data['lineId'],
                                     trap_data['number'],

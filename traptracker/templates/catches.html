@@ -1,7 +1,18 @@
 {% extends "base.html" %}
 {% block body %}
     <h1>Catches for {{name}}</h1>
-    {% if catches %}
+
+        <form id="catch_form">
+            <input type="hidden" id="eid" name="eid" value="" />
+            Time
+            <input type="text" id="etime" name="etime" placeholder="Time" /><br>
+            Trap ID
+            <input type="text" id="etrapid" name="etrapid" placeholder="Trap ID" /><br>
+            Animal
+            <input type="text" id="eanimalid" name="eanimalid" placeholder="Animal ID" /><br>
+            <input id="submitbtn" type="button" value="Submit" />
+        </form>
+
         <input id="addbtn" type="button" value="Add New" />
         <input id="deletebtn" type="button" value="Delete" />
         <table id="catch_table">
@@ -14,17 +25,6 @@
         </tr></thead>
         <tbody></tbody>
         </table>
-
-        <form id="catch_form">
-            <input type="hidden" id="eid" name="eid" value="" />
-            Time
-            <input type="text" id="etime" name="etime" placeholder="Time" /><br>
-            Trap ID
-            <input type="text" id="etrapid" name="etrapid" placeholder="Trap ID" /><br>
-            Animal
-            <input type="text" id="eanimalid" name="eanimalid" placeholder="Animal ID" /><br>
-            <input id="submitbtn" type="button" value="Submit" />
-        </form>
 
         <a class="button" href="/export/{{number}}">Export data</a>
 
@@ -168,7 +168,4 @@
                 table.draw();
             }
         </script>
-    {% else %}
-        No catchess have been recorded for this line
-    {% endif %}
 {% endblock %}

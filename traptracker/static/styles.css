@@ -121,13 +121,13 @@ label {
 input[type=text] {
     margin: 8px 0px;
     padding: 10px 10px;
-    width: 50%;
+    width: 500px;
 }
 
 input[type=password] {
     margin: 8px 0px;
     padding: 10px 10px;
-    width: 50%;
+    width: 500px;
 }
 
 input[type=submit] {
@@ -138,6 +138,24 @@ input[type=submit] {
     border: 0px;
 }
 
+input[type=button] {
+    background-color: rgba(0,128,0,1);
+    color: white;
+    padding: 10px;
+    text-decoration: none;
+    border: 0px;
+}
+
+input[type=search] {
+    margin: 8px 0px;
+    padding: 10px 10px;
+}
+
+select {
+    margin: 8px 0px;
+    padding: 10px 10px;
+}
+
 textarea {
     margin: 8px 0px;
     width: 50%;
@@ -145,10 +163,42 @@ textarea {
 }
 
 /* ******************************* */
+/* Forms for editing */
+#trap_form h2 {
+    margin: 5px;
+}
+
+#trap_form {
+    width: 1050px;
+    padding: 10px;
+    border-radius: 10px;
+    margin-bottom: 25px;
+    background-color: #f2f2f2;
+    border-style: solid;
+    border-color: #DCDCDC;
+    border-width: 2px;
+}
+
+#trap_form input[type=text] {
+    width: 200px;
+}
+
+#trap_form input[type=button] {
+    margin-top: 5px;
+}
+
+#trap_form label {
+    font-weight: normal;
+    text-transform: capitalize;
+}
+
+
+/* ******************************* */
 /* Table */
 table {
     border-collapse: collapse;
-    width: 70%;
+    width: 50%;
+    margin-bottom: 15px;
 }
 
 th, td {
@@ -166,7 +216,7 @@ tr:not(:first-child):hover {
 }
 
 .ten {
-    width: 10%;
+    width: 5%;
 }
 
 .left {
@@ -177,6 +227,9 @@ tr:not(:first-child):hover {
     text-align: center;
 }
 
+#trap_table {
+    float: left;
+}
 
 /* ******************************* */
 /* "Button" */
@@ -192,4 +245,50 @@ a.button {
     background-color: rgba(0,128,0,1);
     color: white;
     text-decoration: none;
+}
+
+/* ******************************* */
+/* Map */
+
+#map {
+    border-style: solid;
+    border-width: 2px;
+    border-color: #B5B5B5;
+    float: left;
+    margin-left: 50px;
+    width: 45%;
+    height: 400px;
+}
+
+/* ******************************* */
+/* Smaller Screen */
+@media only screen and (max-width: 1170px) {
+    #map {
+        width: 100%;
+        margin-left: 0px;
+    }
+
+    table {
+        width: 100%;
+    }
+
+    #trap_form {
+        width: 91%;
+    }
+
+    input[type=text] {
+        width: 93%;
+    }
+
+    input[type=password] {
+        width: 93%;
+    }
+
+    #trap_form input[type=text] {
+        width: 93%;
+    }
+
+    main h6 {
+        width: 80%;
+    }
 }

@@ -8,6 +8,7 @@
             <th class="left">Line Name</th>
             <th class="ten"></th>
             <th class="ten"></th>
+            <th class="ten"></th>
         </tr>
         </thead>
         <tbody>
@@ -16,6 +17,7 @@
             <td>{{line.name}}</td>
             <td><a href="/edit/{{line.id}}">Edit</a></td>
             <td><a href="/catches/{{line.id}}">Catches</a></td>
+            <td><a href="/settings/{{line.id}}">Settings</a></td>
         </tr>
         {% endfor %}
         </tbody>
@@ -28,6 +30,7 @@
                 {"name": "name", "orderable": true},
                 {"name": "edit", "orderable": false},
                 {"name": "catches", "orderable": false},
+                {"name": "settings", "orderable": false},
                 ],
                 "order": [[0, 'asc']],
                 paging: true,
