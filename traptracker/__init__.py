@@ -4,10 +4,8 @@ from flask_restful import Api
 import flask_login
 
 from traptracker.api import LineInterface, TrapInterface, AnimalInterface, CatchInterface, AuthInterface
-from traptracker.auth import Anonymous
 
 import logging
-import base64
 
 # Set up flask application with all plugins
 app = Flask(__name__)
@@ -20,6 +18,16 @@ loginManager = flask_login.LoginManager()
 loginManager.login_view = "login"
 loginManager.login_message = "Please log in to access this page"
 loginManager.login_message_category = "warning"
+
+
+class Anonymous(flask_login.AnonymousUserMixin):
+    def __init__(self):
+        self.username = "Guest"
+
+    def __repr__(self):
+        return "<User: {}>".format(self.username)
+
+
 loginManager.anonymous_user = Anonymous
 loginManager.init_app(app)
 

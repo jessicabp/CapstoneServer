@@ -4,11 +4,10 @@ import flask_login
 import traptracker.orm as orm
 from traptracker import app, loginManager
 from traptracker.orm import Line, Trap, Catch, Animal, User, create_hashed_line
-from traptracker.auth import authenticate, AUTH_NONE, AUTH_CATCH, AUTH_LINE, LoginForm, CreateLineForm, SettingsForm
+from traptracker.auth import authenticate, AUTH_NONE, AUTH_CATCH, AUTH_LINE
+from traptracker.website_forms import LoginForm, CreateLineForm, SettingsForm
 
 from datetime import datetime
-from io import BytesIO
-import xlsxwriter
 import string
 import hashlib
 import binascii
@@ -166,11 +165,19 @@ def settings(number):
         flash("Authentication isn't high enough", "error")
         return redirect(url_for("index"))
 
+    # Set up forms and data
     form = SettingsForm()
+    sess = orm.get_session()
+    line = sess.query(Line).filter_by(id=number).first()
+    animals = sess.query(Animal).order_by(Animal.id.asc()).all()
+    sess.close()
+
+    currentPref = [animals[i].name for i in [line.animal_1, line.animal_2, line.animal_3]]
 
     if form.validate_on_submit():
         userChange = False
         adminChange = False
+        preferenceChange = False
 
         if form.oldUPassword.data and form.newUPassword.data:
             if authenticate(number, form.oldUPassword.data) == AUTH_CATCH:
@@ -180,7 +187,12 @@ def settings(number):
             if authenticate(number, form.oldAPassword.data) == AUTH_LINE:
                 adminChange = True
 
-        if userChange or adminChange:
+        if form.animal1.data or form.animal2.data or form.animal3.data:
+            preferenceChange = True
+
+        print(preferenceChange)
+
+        if userChange or adminChange or preferenceChange:
             sess = orm.get_session()
             line = sess.query(Line).filter_by(id=number).first()
             if userChange:
@@ -193,19 +205,41 @@ def settings(number):
                                                                  binascii.unhexlify(line.salt), 100000)
                 line.admin_password_hashed = binascii.hexlify(hashed).decode("utf-8")
 
+            if preferenceChange:
+                # Closure for changing preference
+                def changePref(data):
+                    animal = sess.query(Animal).filter_by(name=string.capwords(data)).first()
+                    if not animal:
+                        animal = Animal(form.animal1.data)
+                        sess.add(animal)
+                        sess.commit()
+                    return animal.id
+
+                if form.animal1.data:
+                    line.animal_1 = changePref(form.animal1.data)
+
+                if form.animal2.data:
+                    line.animal_2 = changePref(form.animal2.data)
+
+                if form.animal3.data:
+                    line.animal_3 = changePref(form.animal3.data)
+
+                # Update current preference
+                currentPref = [animals[i].name for i in [line.animal_1, line.animal_2, line.animal_3]]
+
             sess.add(line)
             sess.commit()
             sess.close()
 
             flash("Changes to line made", "confirm")
-            return render_template("settings.html", form=form)
+            return render_template("settings.html", form=form, animals=animals, currentPref=currentPref)
 
         else:
             flash("Incorrect password given", "error")
-            return render_template("settings.html", form=form)
+            return render_template("settings.html", form=form, animals=animals, currentPref=currentPref)
 
     # GET Request
-    return render_template("settings.html", form=form)
+    return render_template("settings.html", form=form, animals=animals, currentPref=currentPref)
 
 
 

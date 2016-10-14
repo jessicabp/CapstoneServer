@@ -12,6 +12,17 @@
         {{ form.oldAPassword.label }} <br>
         {{ form.oldAPassword }} <br>
         {{ form.newAPassword }} <br><br>
+
+        {{ form.animal1.label }} <br>
+        {{ form.animal1(list="id_datalist", placeholder="Current preference: " + currentPref[0]) }}<br>
+        {{ form.animal2(list="id_datalist", placeholder="Current preference: " + currentPref[1]) }}<br>
+        {{ form.animal3(list="id_datalist", placeholder="Current preference: " + currentPref[2]) }}<br><br>
+
+        <datalist id="id_datalist">
+            {% for animal in animals %}
+                <option value={{ animal.name }}>
+            {% endfor %}
+        </datalist>
         <input type="submit" value="Submit" />
       </form>
 
