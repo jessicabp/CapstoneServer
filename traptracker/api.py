@@ -9,6 +9,7 @@ from traptracker.auth import authenticate, AUTH_NONE, AUTH_CATCH, AUTH_LINE
 
 sess = orm.get_session()
 
+
 class AuthInterface(Resource):
     def get(self):
         """
@@ -32,6 +33,7 @@ class AuthInterface(Resource):
             return {"message": "needs line_id and password url parameters"}, 400
         level = authenticate(args['line_id'], args['password'])
         return {'result': level}
+
 
 class LineInterface(Resource):
     def get(self):
@@ -332,6 +334,33 @@ class CatchInterface(Resource):
 
         sess.commit()
         return {'result': [catch.getDict() for catch in catches]}, 201
+
+
+    def delete(self):
+        """
+        /catch DELETE request will delete multiple catches in the database
+
+        Content-type: application/json
+        Payload:
+            - JSONObject: {"lineId": <int>,
+                           "password": <string>,
+                           "catches": [<int>...]}
+
+        """
+        json_data = request.get_json()
+        if authenticate(json_data['lineId'], json_data['password']) >= AUTH_LINE:
+            # Make sure they all belong to the same line
+            catches = sess.query(Catch, Trap).join(Trap).filter(Catch.id.in_(json_data['catches'])).all()
+            for catch in catches:
+                if catch[1].line_id != json_data['lineId']:
+                    return {"message": "catch belongs to different line"}, 400
+
+            # Delete catches
+            sess.query(Catch).filter(Catch.id.in_(json_data['catches'])).delete(synchronize_session='fetch')
+            sess.commit()
+            return None, 201
+        else:
+            return {"message": "could not validate user"}, 401
 
 
 class AnimalInterface(Resource):

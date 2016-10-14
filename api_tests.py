@@ -247,6 +247,16 @@ class TestCatchInterface(unittest.TestCase):
         response = self.app.put(catchUrl, data=jsonData, content_type="application/json", base_url=baseUrl)
         self.assertEqual(response.status_code, 400, "Wrong error code returned with missing key")
         self.assertIn("could not enter catch into database", response.data.decode("utf-8"), "Wrong message given")
+        
+    def testDelete(self):
+        sess = orm.get_session()
+        entiresBefore = len(sess.query(Catch).all())
+        jsonData = json.dumps({"lineId": 1,
+                               "password": "!s0meth@ng",
+                               "catches": [1,4]})
+        self.app.delete(catchUrl, data=jsonData, content_type="application/json", base_url=baseUrl)
+        self.assertEqual(entiresBefore-2, len(sess.query(Catch).all()), "/catch DELETE did not delete catch")
+        sess.close()
 
 
 class TestAnimalInterface(unittest.TestCase):
