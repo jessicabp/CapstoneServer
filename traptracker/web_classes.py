@@ -204,13 +204,11 @@ def settings(number):
         adminChange = False
         preferenceChange = False
 
-        if form.oldUPassword.data and form.newUPassword.data:
-            if authenticate(number, form.oldUPassword.data) == AUTH_CATCH:
-                userChange = True
+        if form.newUPassword.data:
+            userChange = True
 
-        if form.oldAPassword.data and form.newAPassword.data:
-            if authenticate(number, form.oldAPassword.data) == AUTH_LINE:
-                adminChange = True
+        if form.newAPassword.data:
+            adminChange = True
 
         if form.animal1.data or form.animal2.data or form.animal3.data:
             preferenceChange = True

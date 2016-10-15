@@ -24,10 +24,8 @@ class CreateLineForm(FlaskForm):
 
 
 class SettingsForm(FlaskForm):
-    oldUPassword = PasswordField("User Password", render_kw={"placeholder": "Enter old user password"})
-    newUPassword = PasswordField("re_uPassword", render_kw={"placeholder": "Enter new user password"})
-    oldAPassword = PasswordField("Admin Password", render_kw={"placeholder": "Enter old admin password"})
-    newAPassword = PasswordField("re_aPassword", render_kw={"placeholder": "Enter new admin password"})
+    newUPassword = PasswordField("Change user password", render_kw={"placeholder": "Enter new user password"})
+    newAPassword = PasswordField("Change admin password", render_kw={"placeholder": "Enter new admin password"})
     animal1 = StringField("Animal Preference")
     animal2 = StringField("Animal Preference")
     animal3 = StringField("Animal Preference")
