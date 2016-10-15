@@ -197,7 +197,7 @@ def settings(number):
     animals = sess.query(Animal).order_by(Animal.id.asc()).all()
     sess.close()
 
-    currentPref = [animals[i].name for i in [line.animal_1, line.animal_2, line.animal_3]]
+    currentPref = [sess.query(Animal).get(i).name for i in [line.animal_1, line.animal_2, line.animal_3]]
 
     if form.validate_on_submit():
         userChange = False
