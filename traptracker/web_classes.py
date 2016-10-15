@@ -12,6 +12,14 @@ import string
 import hashlib
 import binascii
 
+def get_auth_level(line_id, level):
+    if 'line_auths' not in session:
+        session['line_auths'] = {}
+    if str(line_id) not in session['line_auths'] or 'password' not in session['line_auths'][str(line_id)]:
+        return redirect(url_for('login', level=level, next=request.url))
+    if authenticate(line_id, session['line_auths'][str(line_id)]['password'])<level:
+        return redirect(url_for('login', level=level, next=request.url))
+    return True;
 
 @loginManager.user_loader
 def load_user(id):
@@ -23,7 +31,6 @@ def load_user(id):
 
 @app.route("/", methods=["GET"])
 def index():
-    flask_login.logout_user()
     sess = orm.get_session()
     result = render_template("index.html", lines=sess.query(Line).all())
     sess.close()
@@ -34,9 +41,9 @@ def index():
 def login():
     form = LoginForm()
     next = request.args.get('next')
-    id = 0
+    line_id = 0
     if next is not None:
-        id = int(next.split('/')[-1])
+        line_id = int(next.split('/')[-1])
 
     if form.validate_on_submit():
         level = authenticate(form.name.data, form.password.data)
@@ -45,17 +52,21 @@ def login():
             flash("Password is invalid", "error")
             return redirect(url_for("login"))
 
-        sess = orm.get_session()
-        user = sess.query(User).filter_by(line_id=form.name.data).filter_by(auth=level).first()
-        sess.close()
+        #store the password they used in their session for later API access
+        if str(line_id) not in session['line_auths']: session['line_auths'][str(line_id)] = {}
+        session['line_auths'][str(line_id)]['password'] = form.password.data
 
-        flask_login.login_user(user)
+        #sess = orm.get_session()
+        #user = sess.query(User).filter_by(line_id=form.name.data).filter_by(auth=level).first()
+        #sess.close()
+
+        #flask_login.login_user(user)
 
         flash("Logged in successfully", "confirm")
         return redirect(next or url_for("index"))
 
     # GET Request
-    return render_template("login.html", form=form, id=id, next=next)
+    return render_template("login.html", form=form, line_id=line_id, next=next)
 
 
 @app.route("/logout", methods=["GET"])
@@ -123,9 +134,15 @@ def create():
 
 @app.route("/catches/<int:number>", methods=["GET"])
 def catches(number):
+    get_auth = get_auth_level(number, AUTH_CATCH)
+    if get_auth!=True:
+        flash("Authentication isn't high enough", "error")
+        return get_auth
+
     sess = orm.get_session()
     result = render_template("catches.html",
                 line_id = number,
+                password=session['line_auths'][str(number)]['password'],
                 catches=sess.query(Catch, Trap, Animal).join(Trap).join(Animal).filter(Trap.line_id == number).all(),
                 name=sess.query(Line).filter_by(id=number).first().name,
                 number=number,
@@ -135,8 +152,12 @@ def catches(number):
 
 
 @app.route("/edit/<int:number>", methods=["GET"])
-#@flask_login.login_required
 def traps(number):
+    get_auth = get_auth_level(number, AUTH_CATCH)
+    if get_auth!=True:
+        flash("Authentication isn't high enough", "error")
+        return get_auth
+
     sess = orm.get_session()
     trapData = sess.query(Trap).filter_by(line_id=number).all()
 
@@ -151,19 +172,23 @@ def traps(number):
         avgLat /= len(trapData)
         avgLong /= len(trapData)
 
-    result = render_template("traps.html", line_id=number, traps=trapData, avg=(avgLat, avgLong),
+    result = render_template("traps.html", line_id=number, password=session['line_auths'][str(number)]['password'], traps=trapData, avg=(avgLat, avgLong),
                              name=sess.query(Line).filter_by(id=number).first().name)
     sess.close()
     return result
 
 
 @app.route("/settings/<int:number>", methods=["GET", "POST"])
-@flask_login.login_required
 def settings(number):
-    if flask_login.current_user.auth == 1:
-        session.pop('_flashes', None)
+    get_auth = get_auth_level(number, AUTH_LINE)
+    if get_auth!=True:
         flash("Authentication isn't high enough", "error")
-        return redirect(url_for("index"))
+        return get_auth
+
+    #if flask_login.current_user.auth == 1:
+    #    session.pop('_flashes', None)
+    #    flash("Authentication isn't high enough", "error")
+    #    return redirect(url_for("index"))
 
     # Set up forms and data
     form = SettingsForm()
