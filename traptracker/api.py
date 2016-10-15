@@ -29,7 +29,7 @@ class AuthInterface(Resource):
             - /checkauth?line_id=1&password=example
         """
         args = request.args
-        if not 'line_id' in args and 'password' in args:
+        if not 'line_id' in args or not 'password' in args:
             return {"message": "needs line_id and password url parameters"}, 400
         level = authenticate(args['line_id'], args['password'])
         return {'result': level}
