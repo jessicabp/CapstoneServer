@@ -66,13 +66,17 @@
                 $('#deletebtn').click( function () {
                     //table.row('.selected').remove().draw( false );
                     data = table.row('.selected').data();
-                    delete_trap(data);
+                    with_auth(2, function(){
+                        delete_trap(data);
+                    });
                 } );
 
                 $('#addbtn').click(function(){
                     //TODO: maybe display a message while in adding mode
-                    adding = true;
-                    document.getElementById("trap_form").reset();
+                    with_auth(2, function(){
+                        adding = true;
+                        document.getElementById("trap_form").reset();
+                    });
                     //console.log('submitted');
                     //var trap = get_new_trap_data()
                     //delete trap['id'];
@@ -85,11 +89,15 @@
                         var trap = get_new_trap_data()
                         delete trap['id'];
                         trap['lineId'] = {{line_id}};
-                        submit_trap(trap);
+                        with_auth(2, function(){
+                            submit_trap(trap);
+                        });
                         adding = false;
                     } else {
                         var trap = get_new_trap_data()
-                        submit_trap(trap);
+                        with_auth(2, function(){
+                            submit_trap(trap);
+                        });
                     }
                 });
             });
@@ -108,7 +116,7 @@
             }
 
             function submit_trap(trap) {
-                put_data = {'lineId': {{line_id}}, 'password': 'password', 'traps': [trap]};
+                put_data = {'lineId': {{line_id}}, 'password': '{{password}}', 'traps': [trap]};
                 // TODO: get password from cookie or something, generated when logging in, request login if not present
 
                 $.ajax({
@@ -133,7 +141,7 @@
                 if( retVal!=true){
                     return false;
                 }
-                delete_data = {'lineId': {{line_id}}, 'password': 'password', 'traps': [trap['id']]};
+                delete_data = {'lineId': {{line_id}}, 'password': '{{password}}', 'traps': [trap['id']]};
                 $.ajax({
                     type: "DELETE",
                     url: "/api/trap",

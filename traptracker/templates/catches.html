@@ -52,13 +52,17 @@
                 $('#deletebtn').click( function () {
                     //table.row('.selected').remove().draw( false );
                     data = table.row('.selected').data();
-                    delete_catch(data);
+                    with_auth(2, function(){
+                        delete_catch(data);
+                    });
                 } );
 
                 $('#addbtn').click(function(){
                     //TODO: maybe display a message while in adding mode
-                    adding = true;
-                    document.getElementById("catch_form").reset();
+                    with_auth(1, function(){
+                        adding = true;
+                        document.getElementById("catch_form").reset();
+                    });
                 });
 
                 $('#submitbtn').click(function(){
@@ -66,11 +70,15 @@
                         var cat = get_new_catch_data()
                         delete cat['id'];
                         cat['lineId'] = {{line_id}};
-                        submit_catch(cat);
+                        with_auth(1, function(){
+                            submit_catch(cat);
+                        });
                         adding = false;
                     } else {
-                        var cat = get_new_catch_data()
-                        submit_catch(cat);
+                        var cat = get_new_catch_data();
+                        with_auth(1, function(){
+                            submit_catch(cat);
+                        });
                     }
                 });
             });
@@ -89,7 +97,7 @@
                 if( retVal!=true){
                     return false;
                 }
-                delete_data = {'lineId': {{line_id}}, 'password': 'password', 'catches': [cat['id']]};
+                delete_data = {'lineId': {{line_id}}, 'password': '{{password}}', 'catches': [cat['id']]};
                 $.ajax({
                     type: "DELETE",
                     url: "/api/catch",
@@ -109,7 +117,7 @@
             }
 
             function submit_catch(cat) {
-                put_data = {'lineId': {{line_id}}, 'password': 'password', 'catches': [cat]};
+                put_data = {'lineId': {{line_id}}, 'password': '{{password}}', 'catches': [cat]};
                 // TODO: get password from cookie or something, generated when logging in, request login if not present
 
                 $.ajax({
