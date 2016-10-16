@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% block body %}
     <h1>Traps in {{name}}</h1>
-        <form id="trap_form">
+        <form id="trap_form" hidden>
             <h2>Add Trap</h2>
             <input type="hidden" id="eid" name="eid" value="" />
             <label for="enumber">Number:</label>
@@ -47,6 +47,7 @@
                 $('#trap_table tbody').on( 'click', 'tr', function () {
                     if ( $(this).hasClass('selected') ) {
                         $(this).removeClass('selected');
+                        $('#trap_form').hide();
                     }
                     else {
                         adding = false;
@@ -60,6 +61,7 @@
                         document.getElementById('epath_side').value = data['side'];
                         document.getElementById('ebroken').checked = data['broken'];
                         document.getElementById('emoved').checked = data['moved'];
+                        $('#trap_form').show();
                     }
                 } );
 
@@ -76,6 +78,7 @@
                     with_auth(2, function(){
                         adding = true;
                         document.getElementById("trap_form").reset();
+                        $('#trap_form').show();
                     });
                     //console.log('submitted');
                     //var trap = get_new_trap_data()
@@ -93,11 +96,13 @@
                             submit_trap(trap);
                         });
                         adding = false;
+                        $('#trap_form').hide();
                     } else {
                         var trap = get_new_trap_data()
                         with_auth(2, function(){
                             submit_trap(trap);
                         });
+                        $('#trap_form').hide();
                     }
                 });
             });

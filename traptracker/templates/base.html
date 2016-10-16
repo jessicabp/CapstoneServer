@@ -8,27 +8,34 @@
     <script src="https://unpkg.com/leaflet@1.0.1/dist/leaflet.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
     <script src="https://cdn.datatables.net/1.10.12/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.15.1/moment.min.js"></script>
 
     <script>
         function with_auth(level, callback) {
-                $.ajax({
-                    type: "GET",
-                    url: "/api/checkauth?line_id={{line_id}}&password={{password}}",
-                }).done(function(data, statusText, xhr){
-                    var status = xhr.status;                //200
-                    var head = xhr.getAllResponseHeaders(); //Detail header info
-                    console.log(status);
-                    console.log(data);
-                    if (status==200) {
-                        if (data['result']>=level) {
-                            callback();
-                        } else {
-                            //login, then return
-                            window.location.href = "/login?level=2&next="+window.location.href;
-                        }
+            $.ajax({
+                type: "GET",
+                url: "/api/checkauth?line_id={{line_id}}&password={{password}}",
+            }).done(function(data, statusText, xhr){
+                var status = xhr.status;                //200
+                var head = xhr.getAllResponseHeaders(); //Detail header info
+                console.log(status);
+                console.log(data);
+                if (status==200) {
+                    if (data['result']>=level) {
+                        callback();
+                    } else {
+                        //login, then return
+                        window.location.href = "/login?level=2&next="+window.location.href;
                     }
-                });
-            }
+                }
+            });
+        }
+        function timestamp2DDMMYYYY(data){
+            return moment(data).format('DD/MM/YYYY');
+        }
+        function DDMMYYYY2timestamp(data){
+            return moment(data,'DD/MM/YYYY').valueOf();
+        }
     </script>
 
     <title>Trap Tracker</title>

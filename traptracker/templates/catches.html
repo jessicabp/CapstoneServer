@@ -2,10 +2,10 @@
 {% block body %}
     <h1>Catches for {{name}}</h1>
 
-        <form id="catch_form">
+        <form id="catch_form" hidden>
             <input type="hidden" id="eid" name="eid" value="" />
             Time
-            <input type="text" id="etime" name="etime" placeholder="Time" /><br>
+            <input type="text" id="etime" name="etime" placeholder="Time (DD/MM/YYYY)" /><br>
             Trap ID
             <input type="text" id="etrapid" name="etrapid" placeholder="Trap ID" /><br>
             Animal
@@ -19,7 +19,7 @@
         <thead><tr>
             <th>ID</th>
             <th class="left">Date</th>
-            <th class="left">Trap Number</th>
+            <th class="left">Trap ID</th>
             <th class="left">Animal</th>
             <th></th>
         </tr></thead>
@@ -36,6 +36,7 @@
                 $('#catch_table tbody').on( 'click', 'tr', function () {
                     if ( $(this).hasClass('selected') ) {
                         $(this).removeClass('selected');
+                        $('#catch_form').hide();
                     }
                     else {
                         adding = false;
@@ -43,9 +44,10 @@
                         $(this).addClass('selected');
                         data = table.row('.selected').data();
                         document.getElementById('eid').value = data['id'];
-                        document.getElementById('etime').value = data['time'];
+                        document.getElementById('etime').value = timestamp2DDMMYYYY(data['time']);
                         document.getElementById('etrapid').value = data['trapId'];
                         document.getElementById('eanimalid').value = data['animalId'];
+                        $('#catch_form').show();
                     }
                 } );
 
@@ -62,6 +64,7 @@
                     with_auth(1, function(){
                         adding = true;
                         document.getElementById("catch_form").reset();
+                        $('#catch_form').show();
                     });
                 });
 
@@ -74,11 +77,13 @@
                             submit_catch(cat);
                         });
                         adding = false;
+                        $('#catch_form').hide();
                     } else {
                         var cat = get_new_catch_data();
                         with_auth(1, function(){
                             submit_catch(cat);
                         });
+                        $('#catch_form').hide();
                     }
                 });
             });
@@ -88,7 +93,7 @@
                 cat['id'] = parseInt(document.getElementById('eid').value);
                 cat['trapId'] = parseInt(document.getElementById('etrapid').value);
                 cat['animalId'] = parseInt(document.getElementById('eanimalid').value);
-                cat['time'] = parseInt(document.getElementById('etime').value);
+                cat['time'] = DDMMYYYY2timestamp(document.getElementById('etime').value);
                 return cat;
             }
 
@@ -156,7 +161,7 @@
                             table = $('#catch_table').DataTable({
                                 "columns": [
                                     {"data": "id", "orderable": false, "visible": false},
-                                    {"data": "time", "orderable": true},
+                                    {"data": "time", "orderable": true, "render": timestamp2DDMMYYYY},
                                     {"data": "trapId", "orderable": true},
                                     {"data": "animalId", "orderable": true}
                                 ],
