@@ -168,7 +168,7 @@ textarea {
     margin: 5px;
 }
 
-#trap_form {
+#trap_form, #catch_form {
     width: 1050px;
     padding: 10px;
     border-radius: 10px;
@@ -179,15 +179,15 @@ textarea {
     border-width: 2px;
 }
 
-#trap_form input[type=text] {
+#trap_form input[type=text], #catch_form input[type=text] {
     width: 200px;
 }
 
-#trap_form input[type=button] {
+#trap_form input[type=button], #catch_form input[type=button] {
     margin-top: 5px;
 }
 
-#trap_form label {
+#trap_form label, #catch_form label {
     font-weight: normal;
     text-transform: capitalize;
 }

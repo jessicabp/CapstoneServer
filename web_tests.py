@@ -153,12 +153,19 @@ class FirefoxTesting(unittest.TestCase):
     def test_add_trap(self):
         self.past_login_screen("Edit")
 
-        previous_page = self.driver.find_element_by_tag_name("html")
         self.driver.find_element_by_id("addbtn").click()
 
         WebDriverWait(self.driver, delay).until(EC.presence_of_element_located((By.ID, "trap_form")))
+        WebDriverWait(self.driver, delay).until(EC.visibility_of_element_located((By.ID, "enumber")))
         # Ahaha jokes on you, been here wondering why presence of the form is located, and the input, but
         # can't send keyboard inputs to the inputs without failing
+        self.driver.find_element_by_id("enumber").send_keys("5")
+
+    @unittest.skipIf(condition, reasoning)
+    def test_add_catch(self):
+        self.past_login_screen("Catches")
+
+        self.driver.find_element_by_id("addbtn").click()
 
 
 # Stuff here using the chrome webdriver
