@@ -1,14 +1,18 @@
 import unittest
+from random import choice
 
 from selenium.webdriver.remote.webdriver import WebDriver
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
-from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support.ui import WebDriverWait, Select
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 
 site_url = "http://127.0.0.1:5000/"
 delay = 30
+
+condition = site_url == "https://traptracker.pythonanywhere.com/"
+reasoning = "Skip test due to non-fixed data"
 
 
 class FirefoxTesting(unittest.TestCase):
@@ -79,7 +83,7 @@ class FirefoxTesting(unittest.TestCase):
 
         return self.driver.find_element_by_tag_name("h1")
 
-    def test_login_page_by_settings(self):
+    def test_login_page_by_edit(self):
         header = self.to_login_page("Edit")
         self.assertEqual("Login", header.text)
 
@@ -112,22 +116,52 @@ class FirefoxTesting(unittest.TestCase):
 
         WebDriverWait(self.driver, delay).until(EC.staleness_of(previous_page))
 
-    @unittest.skipIf(site_url == "https://traptracker.pythonanywhere.com/", "Skip test due to non-fixed data")
+    @unittest.skipIf(condition, reasoning)
     def test_access_traps(self):
         self.past_login_screen("Edit")
         self.assertEqual("Traps in Manatawu Gorge", self.driver.find_element_by_tag_name("h1").text)
 
-    @unittest.skipIf(site_url == "https://traptracker.pythonanywhere.com/", "Skip test due to non-fixed data")
+    @unittest.skipIf(condition, reasoning)
     def test_access_catches(self):
         self.past_login_screen("Catches")
         self.assertEqual("Catches for Manatawu Gorge", self.driver.find_element_by_tag_name("h1").text)
 
-    @unittest.skipIf(site_url == "https://traptracker.pythonanywhere.com/", "Skip test due to non-fixed data")
+    @unittest.skipIf(condition, reasoning)
     def test_access_settings(self):
         self.past_login_screen("Settings")
         self.assertEqual("Settings", self.driver.find_element_by_tag_name("h1").text)
 
+    @unittest.skipIf(condition, reasoning)
+    def test_using_settings(self):
+        self.past_login_screen("Settings")
 
+        previous_page = self.driver.find_element_by_tag_name("html")
+
+        self.driver.find_element_by_name("animal1").send_keys("Hedgehog")
+        self.driver.find_element_by_name("animal2").send_keys("Cat")
+        self.driver.find_element_by_name("animal3").send_keys("Bird")
+        self.driver.find_element_by_id("submit").click()
+
+        WebDriverWait(self.driver, delay).until(EC.staleness_of(previous_page))
+
+        self.assertEqual("Changes to line made", self.driver.find_element_by_tag_name("h6").text)
+        self.assertIn("Hedgehog", self.driver.find_element_by_name("animal1").get_attribute("placeholder"))
+        self.assertIn("Cat", self.driver.find_element_by_name("animal2").get_attribute("placeholder"))
+        self.assertIn("Bird", self.driver.find_element_by_name("animal3").get_attribute("placeholder"))
+
+    @unittest.skipIf(condition, reasoning)
+    def test_add_trap(self):
+        self.past_login_screen("Edit")
+
+        previous_page = self.driver.find_element_by_tag_name("html")
+        self.driver.find_element_by_id("addbtn").click()
+
+        WebDriverWait(self.driver, delay).until(EC.presence_of_element_located((By.ID, "trap_form")))
+        # Ahaha jokes on you, been here wondering why presence of the form is located, and the input, but
+        # can't send keyboard inputs to the inputs without failing
+
+
+# Stuff here using the chrome webdriver
 class ChromeTesting(unittest.TestCase):
     def setUp(self):
         capabilities = DesiredCapabilities.CHROME
@@ -193,7 +227,7 @@ class ChromeTesting(unittest.TestCase):
 
         return self.driver.find_element_by_tag_name("h1")
 
-    def test_login_page_by_settings(self):
+    def test_login_page_by_edit(self):
         header = self.to_login_page("Edit")
         self.assertEqual("Login", header.text)
 
@@ -226,20 +260,38 @@ class ChromeTesting(unittest.TestCase):
 
         WebDriverWait(self.driver, delay).until(EC.staleness_of(previous_page))
 
-    @unittest.skipIf(site_url == "https://traptracker.pythonanywhere.com/", "Skip test due to non-fixed data")
+    @unittest.skipIf(condition, reasoning)
     def test_access_traps(self):
         self.past_login_screen("Edit")
         self.assertEqual("Traps in Manatawu Gorge", self.driver.find_element_by_tag_name("h1").text)
 
-    @unittest.skipIf(site_url == "https://traptracker.pythonanywhere.com/", "Skip test due to non-fixed data")
+    @unittest.skipIf(condition, reasoning)
     def test_access_catches(self):
         self.past_login_screen("Catches")
         self.assertEqual("Catches for Manatawu Gorge", self.driver.find_element_by_tag_name("h1").text)
 
-    @unittest.skipIf(site_url == "https://traptracker.pythonanywhere.com/", "Skip test due to non-fixed data")
+    @unittest.skipIf(condition, reasoning)
     def test_access_settings(self):
         self.past_login_screen("Settings")
         self.assertEqual("Settings", self.driver.find_element_by_tag_name("h1").text)
+
+    @unittest.skipIf(condition, reasoning)
+    def test_using_settings(self):
+        self.past_login_screen("Settings")
+
+        previous_page = self.driver.find_element_by_tag_name("html")
+
+        self.driver.find_element_by_name("animal1").send_keys("Hedgehog")
+        self.driver.find_element_by_name("animal2").send_keys("Cat")
+        self.driver.find_element_by_name("animal3").send_keys("Bird")
+        self.driver.find_element_by_id("submit").click()
+
+        WebDriverWait(self.driver, delay).until(EC.staleness_of(previous_page))
+
+        self.assertEqual("Changes to line made", self.driver.find_element_by_tag_name("h6").text)
+        self.assertIn("Hedgehog", self.driver.find_element_by_name("animal1").get_attribute("placeholder"))
+        self.assertIn("Cat", self.driver.find_element_by_name("animal2").get_attribute("placeholder"))
+        self.assertIn("Bird", self.driver.find_element_by_name("animal3").get_attribute("placeholder"))
 
 
 if __name__ == "__main__":

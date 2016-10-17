@@ -185,7 +185,7 @@ class TestCatchInterfaceFailures(unittest.TestCase):
                                "password": "password",
                                "catches": [1, 4]})
 
-        response = self.app.delete(trapUrl, data=jsonData, content_type="application/json", base_url=baseUrl)
+        response = self.app.delete(catchUrl, data=jsonData, content_type="application/json", base_url=baseUrl)
 
         self.assertEqual(response.status_code, 401, "Wrong error code returned with low auth level")
         self.assertIn("could not validate user", response.data.decode("utf-8"), "Wrong message given")

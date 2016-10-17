@@ -163,7 +163,7 @@ class Image(Base):
 
 engine = create_engine(SQLALCHEMY_DATABASE_URI)
 
-session = sessionmaker()
+session = sessionmaker(expire_on_commit=False)
 session.configure(bind=engine)
 Base.metadata.create_all(engine)
 

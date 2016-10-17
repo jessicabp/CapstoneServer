@@ -4,6 +4,8 @@ from flask_restful import Api
 import flask_login
 
 from traptracker.api import LineInterface, TrapInterface, AnimalInterface, CatchInterface, AuthInterface
+import traptracker.orm as orm
+from traptracker.orm import Animal
 
 import logging
 
@@ -27,7 +29,6 @@ class Anonymous(flask_login.AnonymousUserMixin):
     def __repr__(self):
         return "<User: {}>".format(self.username)
 
-
 loginManager.anonymous_user = Anonymous
 loginManager.init_app(app)
 
@@ -38,6 +39,18 @@ logging.basicConfig(
     level=logging.WARN
 )
 logging.getLogger('sqlalchemy.engine').setLevel(logging.WARN)
+
+# Set up empty
+sess = orm.get_session()
+try:
+    empty = Animal("Empty")
+    empty.id = 0
+    sess.add(empty)
+    sess.commit()
+except Exception:
+    pass
+finally:
+    sess.close()
 
 # Link URL to classes
 api.add_resource(LineInterface, "/api/line")

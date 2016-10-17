@@ -217,34 +217,26 @@ class TestCatchInterface(unittest.TestCase):
         self.assertEqual(catch.time, testCatch.time, "/catch time not stored correctly")
         sess.close()
 
-    def testPut_NonListFailure(self):
+    def testPut_editCatch(self):
+        sess = orm.get_session()
+        entiresBefore = len(sess.query(Catch).all())
         jsonData = json.dumps({"lineId": 1,
                                 "password": "password",
-                                "catches": {"trapId": testCatch.trap_id,
-                                            "animalId": testCatch.animal_id,
-                                            "time": testCatch.time}
+                                "catches": [{"id": 1,
+                                             "trapId": 1,
+                                             "animalId": 0,
+                                             "time": 221319957}]
                                 })
 
         response = self.app.put(catchUrl, data=jsonData, content_type="application/json", base_url=baseUrl)
 
-        self.assertEqual(response.status_code, 400, "Wrong error code returned with non list for traps")
-        self.assertIn("non iterable datatype passed with catches", response.data.decode("utf-8"), "Wrong message given")
-
-    def testPut_CantAuthenticateFailure(self):
-        jsonData = json.dumps({"lineId": 1, "password":"incorrect"})  # No password or traps given
-
-        response = self.app.put(catchUrl, data=jsonData, content_type="application/json", base_url=baseUrl)
-
-        self.assertEqual(response.status_code, 403, "Wrong error code returned with failure to authenticate")
-        self.assertIn("could not validate password", response.data.decode("utf-8"), "Wrong message given")
-
-    def testPut_MissingKeyFailure(self):
-        jsonData = json.dumps({"lineId": 1, "password":"password", "catches":[{"time": testCatch.time}]})
-
-        response = self.app.put(catchUrl, data=jsonData, content_type="application/json", base_url=baseUrl)
-
-        self.assertEqual(response.status_code, 400, "Wrong error code returned with missing key")
-        self.assertIn("could not enter catch into database", response.data.decode("utf-8"), "Wrong message given")
+        # Test for no change in amount of catches stored
+        self.assertEqual(entiresBefore, len(sess.query(Catch).all()))
+        catch = sess.query(Catch).filter_by(id=1).first()
+        self.assertEqual(catch.trap_id, 1, "/catch trap_id not stored correctly")
+        self.assertEqual(catch.animal_id, 0, "/catch animal_id not stored correctly")
+        self.assertNotEqual(catch.time, 221319957, "/catch time not stored correctly") # Time shouldn't change
+        sess.close()
 
     def testDelete(self):
         sess = orm.get_session()
@@ -274,7 +266,7 @@ class TestAnimalInterface(unittest.TestCase):
     def testGet_Base(self):
         responseJSON = json.loads(self.app.get(animalUrl, base_url=baseUrl).data.decode("utf-8"))["result"]
 
-        self.assertEqual(len(responseJSON), 4, "/animal not returning correct amount with base query")
+        self.assertEqual(len(responseJSON), 5, "/animal not returning correct amount with base query")
 
     def testGet_LineQuery(self):
         responseJSON = json.loads(self.app.get(animalUrl + "?name=C", base_url=baseUrl).data.decode("utf-8"))["result"]
@@ -296,38 +288,6 @@ class TestAnimalInterface(unittest.TestCase):
         animal = sess.query(Animal).filter_by(id=5).first()
         self.assertEqual(animal.name, testAnimal1.name, "/animal time not stored correctly")
         sess.close()
-
-    def testPut_NonListFailure(self):
-        jsonData = json.dumps({"lineId": 1,
-                                "password": "password",
-                                "animals": testAnimal1.name
-                                })
-
-        response = self.app.put(animalUrl, data=jsonData, content_type="application/json", base_url=baseUrl)
-
-        self.assertEqual(response.status_code, 400, "Wrong error code returned with non list for traps")
-        self.assertIn("non iterable datatype passed with catches", response.data.decode("utf-8"), "Wrong message given")
-
-    def testPut_CantAuthenticateFailure(self):
-        jsonData = json.dumps({"lineId": 1,
-                                "password": "incorrect",
-                                "animals": [testAnimal1.name, testAnimal2.name]
-                                })
-
-        response = self.app.put(animalUrl, data=jsonData, content_type="application/json", base_url=baseUrl)
-
-        self.assertEqual(response.status_code, 403, "Wrong error code returned with failure to authenticate")
-        self.assertIn("could not validate password", response.data.decode("utf-8"), "Wrong message given")
-
-    def testPut_MissingKeyFailure(self):
-        jsonData = json.dumps({"lineId": 1,
-                                "animals": [testAnimal1.name, testAnimal2.name]
-                                })
-
-        response = self.app.put(animalUrl, data=jsonData, content_type="application/json", base_url=baseUrl)
-
-        self.assertEqual(response.status_code, 400, "Wrong error code returned with missing key")
-        self.assertIn("could not enter catch into database", response.data.decode("utf-8"), "Wrong message given")
 
 
 class TestAuthInterface(unittest.TestCase):
@@ -357,12 +317,6 @@ class TestAuthInterface(unittest.TestCase):
 
         self.assertEqual(response.mimetype, "application/json", "/checkauth not returning correct mimetype")
         self.assertEqual(jsonResponse["result"], 2, "/checkauth not returning correct level")
-
-    def testGet_argsFailure(self):
-        response = self.app.get(authUrl + "?line_id=1", base_url=baseUrl)
-
-        self.assertEqual(response.mimetype, "application/json", "/checkauth not returning correct mimetype")
-        self.assertEqual(response.status_code, 400, "Wrong error code returned with missing key")
 
 
 classes = [TestLineInterface, TestTrapInterface, TestCatchInterface, TestAnimalInterface, TestAuthInterface]

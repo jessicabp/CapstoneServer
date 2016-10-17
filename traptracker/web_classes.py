@@ -233,7 +233,7 @@ def settings(number):
                 def changePref(data):
                     animal = sess.query(Animal).filter_by(name=string.capwords(data)).first()
                     if not animal:
-                        animal = Animal(form.animal1.data)
+                        animal = Animal(string.capwords(data))
                         sess.add(animal)
                         sess.commit()
                     return animal.id
@@ -248,6 +248,7 @@ def settings(number):
                     line.animal_3 = changePref(form.animal3.data)
 
                 # Update current preference
+                animals = sess.query(Animal).order_by(Animal.id.asc()).all()
                 currentPref = [animals[i].name for i in [line.animal_1, line.animal_2, line.animal_3]]
 
             sess.add(line)
@@ -306,7 +307,7 @@ def export(number):
     # Transpose
     exportData = list(map(list, zip(*exportData)))
 
-    # Make resposne and return
+    # Make response and return
     response = make_response(line.name + "\n" + "\n".join([",".join(l) for l in exportData]))
     response.headers["Content-Disposition"] = "attachment; filename=captures.csv"
     return response

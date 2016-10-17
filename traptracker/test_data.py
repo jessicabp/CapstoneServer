@@ -33,7 +33,11 @@ def pushData(bits):
                          Catch(6, 4, 1476059954)])
 
     if bits[3] == "1":
-        dataList.extend([Animal("Rat"),
+        empty = Animal("Empty")
+        empty.id = 0
+
+        dataList.extend([empty,
+                         Animal("Rat"),
                          Animal("Stoat"),
                          Animal("Hedgehog"),
                          Animal("Cat")])
