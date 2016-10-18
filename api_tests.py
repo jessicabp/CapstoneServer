@@ -4,7 +4,6 @@ import traptracker.test_data as test_data
 import json
 import traptracker.orm as orm
 from traptracker.orm import Line, Trap, Catch, Animal
-from traptracker.auth import authenticate, AUTH_NONE, AUTH_CATCH, AUTH_LINE
 
 
 testLine = Line("Massey Uni Line", "1234", "5678", "", 1, 2, 3)
@@ -49,32 +48,6 @@ class TestLineInterface(unittest.TestCase):
 
         self.assertEqual(len(responseJSON), 1, "/line?name not returning correct amount")
         self.assertEqual(responseJSON[0]['id'], 2, "/line?name incorrect id returned")
-
-    def testPut(self):
-        sess = orm.get_session()
-        entiresBefore = len(sess.query(Line).all())
-        jsonData = json.dumps([{"name": testLine.name, "password": testLine.password_hashed,
-                                "admin_password": testLine.password_hashed,
-                                "animal1": 1, "animal2": 2, "animal3": 3}])
-
-        self.app.put(lineUrl, data=jsonData, content_type="application/json", base_url=baseUrl)
-
-        # Test increase of one + data integrity of password
-        self.assertEqual(entiresBefore+1, len(sess.query(Line).all()), "/line did not add testLine")
-        line = sess.query(Line).filter_by(id=3).first()
-        self.assertEqual(line.name, testLine.name, "/line name not stored correctly")
-        self.assertTrue(authenticate(line.id, testLine.password_hashed)>=AUTH_LINE, "/line password could not validate")
-        sess.close()
-
-    def testDelete(self):
-        sess = orm.get_session()
-        entiresBefore = len(sess.query(Line).all())
-        jsonData = json.dumps({"lineId": 1, "password": "!s0meth@ng"})
-
-        self.app.delete(lineUrl, data=jsonData, content_type="application/json", base_url=baseUrl)
-
-        self.assertEqual(entiresBefore-1, len(sess.query(Line).all()), "/line DELETE did not delete line")
-        sess.close()
 
 
 class TestTrapInterface(unittest.TestCase):

@@ -2,9 +2,7 @@ import unittest
 from traptracker import app
 import traptracker.test_data as test_data
 import json
-import traptracker.orm as orm
 from traptracker.orm import Line, Trap, Catch, Animal
-from traptracker.auth import authenticate, AUTH_NONE, AUTH_CATCH, AUTH_LINE
 
 
 testLine = Line("Massey Uni Line", "1234", "5678", "", 1, 2, 3)
@@ -19,43 +17,6 @@ catchUrl = "/api/catch"
 animalUrl = "/api/animal"
 authUrl = "/api/checkauth"
 baseUrl = "https://localhost"
-
-
-class TestLineInterfaceFailures(unittest.TestCase):
-    data_bits = "1000"
-
-    def setUp(self):
-        app.config["TESTING"] = True
-        self.app = app.test_client()
-        test_data.wipeDatabase(self.data_bits)
-        test_data.pushData(self.data_bits)
-
-    def tearDown(self):
-        test_data.wipeDatabase(self.data_bits)
-
-    def testPut_NonListFailure(self):
-        jsonData = json.dumps({"name": testLine.name, "password": testLine.password_hashed})
-
-        response = self.app.put(lineUrl, data=jsonData, content_type="application/json", base_url=baseUrl)
-
-        self.assertEqual(response.status_code, 400, "Wrong error code returned with non list for lines")
-        self.assertIn("non iterable datatype passed", response.data.decode("utf-8"), "Wrong message given")
-
-    def testPut_MissingKeyFailure(self):
-        jsonData = json.dumps([{"name": testLine.name}])  # No password given
-
-        response = self.app.put(lineUrl, data=jsonData, content_type="application/json", base_url=baseUrl)
-
-        self.assertEqual(response.status_code, 400, "Wrong error code returned with missing key")
-        self.assertIn("could not enter line into database", response.data.decode("utf-8"), "Wrong message given")
-
-    def testDelete_IncorrectId(self):
-        jsonData = json.dumps({"lineId": 5, "password": "!s0meth@ng"})
-
-        response = self.app.delete(lineUrl, data=jsonData, content_type="application/json", base_url=baseUrl)
-
-        self.assertEqual(response.status_code, 401, "Wrong error code returned with incorrect line given")
-        self.assertIn("line doesn't exist", response.data.decode("utf-8"), "Wrong message given")
 
 
 class TestTrapInterfaceFailures(unittest.TestCase):
@@ -275,7 +236,7 @@ class TestAuthInterfaceFailures(unittest.TestCase):
         self.requestAuth("?password=password")
 
 
-classes = [TestLineInterfaceFailures, TestTrapInterfaceFailures, TestCatchInterfaceFailures,
+classes = [TestTrapInterfaceFailures, TestCatchInterfaceFailures,
            TestAnimalInterfaceFailures, TestAuthInterfaceFailures]
 
 if __name__ == "__main__":

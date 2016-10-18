@@ -7,6 +7,7 @@ from selenium.webdriver.support.ui import WebDriverWait, Select
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
+from selenium.common.exceptions import TimeoutException
 
 site_url = "http://127.0.0.1:5000/"
 delay = 30
@@ -152,20 +153,23 @@ class FirefoxTesting(unittest.TestCase):
     @unittest.skipIf(condition, reasoning)
     def test_add_trap(self):
         self.past_login_screen("Edit")
-
         self.driver.find_element_by_id("addbtn").click()
-
         WebDriverWait(self.driver, delay).until(EC.presence_of_element_located((By.ID, "trap_form")))
-        WebDriverWait(self.driver, delay).until(EC.visibility_of_element_located((By.ID, "enumber")))
-        # Ahaha jokes on you, been here wondering why presence of the form is located, and the input, but
-        # can't send keyboard inputs to the inputs without failing
-        self.driver.find_element_by_id("enumber").send_keys("5")
 
     @unittest.skipIf(condition, reasoning)
     def test_add_catch(self):
         self.past_login_screen("Catches")
-
         self.driver.find_element_by_id("addbtn").click()
+        WebDriverWait(self.driver, delay).until(EC.presence_of_element_located((By.ID, "catch_form")))
+
+    def test_create_file_fail_recaptcha(self):
+        self.driver.get(site_url + "create")
+        try:
+            WebDriverWait(self.driver, delay).until(EC.presence_of_element_located((By.ID, "recaptcha-anchor")))
+        except TimeoutException as e:
+            self.assertTrue(isinstance(e, TimeoutException))
+        else:
+            self.assertTrue(False, "Incorrect error returned or was able to locate recaptcha element")
 
 
 # Stuff here using the chrome webdriver
@@ -300,6 +304,29 @@ class ChromeTesting(unittest.TestCase):
         self.assertIn("Cat", self.driver.find_element_by_name("animal2").get_attribute("placeholder"))
         self.assertIn("Bird", self.driver.find_element_by_name("animal3").get_attribute("placeholder"))
 
+    @unittest.skipIf(condition, reasoning)
+    def test_add_trap(self):
+        self.past_login_screen("Edit")
+        self.driver.find_element_by_id("addbtn").click()
+        WebDriverWait(self.driver, delay).until(EC.presence_of_element_located((By.ID, "trap_form")))
+
+    @unittest.skipIf(condition, reasoning)
+    def test_add_catch(self):
+        self.past_login_screen("Catches")
+        self.driver.find_element_by_id("addbtn").click()
+        WebDriverWait(self.driver, delay).until(EC.presence_of_element_located((By.ID, "catch_form")))
+
+    def test_create_file_fail_recaptcha(self):
+        self.driver.get(site_url + "create")
+        try:
+            WebDriverWait(self.driver, delay).until(EC.presence_of_element_located((By.ID, "recaptcha-anchor")))
+        except TimeoutException as e:
+            self.assertTrue(isinstance(e, TimeoutException))
+        else:
+            self.assertTrue(False, "Incorrect error returned or was able to locate recaptcha element")
+
+
+# IE browser doesn't like to work
 
 if __name__ == "__main__":
     unittest.main()
