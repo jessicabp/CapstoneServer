@@ -5,7 +5,7 @@
     <table id="lines">
         <thead>
         <tr>
-            <th class="left">Line Name</th>
+            <th class="left">Trap Line Name</th>
             <th class="ten"></th>
             <th class="ten"></th>
             <th class="ten"></th>
@@ -15,7 +15,7 @@
         {% for line in lines %}
         <tr>
             <td>{{line.name}}</td>
-            <td><a href="/edit/{{line.id}}">Edit</a></td>
+            <td><a href="/edit/{{line.id}}">Traps</a></td>
             <td><a href="/catches/{{line.id}}">Catches</a></td>
             <td><a href="/settings/{{line.id}}">Settings</a></td>
         </tr>
