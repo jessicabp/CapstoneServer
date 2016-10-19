@@ -31,10 +31,10 @@
             });
         }
         function timestamp2DDMMYYYY(data){
-            return moment(data).format('DD/MM/YYYY');
+            return moment.utc(data).local().format('DD/MM/YYYY');
         }
         function DDMMYYYY2timestamp(data){
-            return moment(data,'DD/MM/YYYY').valueOf();
+            return moment(data,'DD/MM/YYYY').utc().valueOf();
         }
     </script>
 
