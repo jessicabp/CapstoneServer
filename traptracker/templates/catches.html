@@ -6,20 +6,20 @@
             <input type="hidden" id="eid" name="eid" value="" />
             Time
             <input type="text" id="etime" name="etime" placeholder="Time (DD/MM/YYYY)" /><br>
-            Trap ID
-            <input type="text" id="etrapid" name="etrapid" placeholder="Trap ID" /><br>
+            <input type="hidden" id="etrapid" name="etrapid"/><br>
             Animal
             <input type="text" id="eanimalid" name="eanimalid" placeholder="Animal ID" /><br>
             <input id="submitbtn" type="button" value="Submit" />
         </form>
 
-        <input id="addbtn" type="button" value="Add New" />
+        <!-- <input id="addbtn" type="button" value="Add New" /> -->
         <input id="deletebtn" type="button" value="Delete" />
         <table id="catch_table">
         <thead><tr>
             <th>ID</th>
             <th class="left">Date</th>
-            <th class="left">Trap ID</th>
+            <th>Trap ID</th>
+            <th class="left">Trap Number</th>
             <th class="left">Animal</th>
             <th></th>
         </tr></thead>
@@ -162,7 +162,8 @@
                                 "columns": [
                                     {"data": "id", "orderable": false, "visible": false},
                                     {"data": "time", "orderable": true, "render": timestamp2DDMMYYYY},
-                                    {"data": "trapId", "orderable": true},
+                                    {"data": "trapId", "orderable": false, "visible": false},
+                                    {"data": "trapNumber", "orderable": true},
                                     {"data": "animalId", "orderable": true}
                                 ],
                                 "order": [[1, 'desc']],

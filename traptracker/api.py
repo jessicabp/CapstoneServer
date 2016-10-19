@@ -204,18 +204,24 @@ class CatchInterface(Resource):
         Returned:
             JSONObject: {'result': [catch...]}
             Catch Object: {'id': <int>,
-                           'trap_id: <int>,
-                           'animal_id': <int>,
+                           'trapId': <int>,
+                           'trapNumber': <int>,
+                           'animalId': <int>,
                            'time': <long int>}
         """
         args = request.args
         if not args:
             return {"message": "no argument given"}, 404
-        result = sess.query(Catch)
-        if 'line_id' in args: result = result.join(Trap).filter(Trap.line_id == args['line_id'])
+        result = sess.query(Catch, Trap).join(Trap)
+        if 'line_id' in args: result = result.filter(Trap.line_id == args['line_id'])
         if 'trap_id' in args: result = result.filter_by(trap_id=args['trap_id'])
-
-        return {'result': [catch.getDict() for catch in result.all()]}, 200
+        print(result.all()[0])
+        res = []
+        for catch, trap in result.all():
+            d = catch.getDict()
+            d.update({'trapNumber': trap.line_order})
+            res.append(d)
+        return {'result': res}, 200
 
     def put(self):
         """
