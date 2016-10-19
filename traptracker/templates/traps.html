@@ -58,7 +58,7 @@
                         document.getElementById('enumber').value = data['number'];
                         document.getElementById('elatitude').value = data['latitude'];
                         document.getElementById('elongitude').value = data['longitude'];
-                        document.getElementById('epath_side').value = data['side'];
+                        document.getElementById('epath_side').value = data['side'] ? "Left" : "Right";
                         document.getElementById('ebroken').checked = data['broken'];
                         document.getElementById('emoved').checked = data['moved'];
                         $('#trap_form').show();
