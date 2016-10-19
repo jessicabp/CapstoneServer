@@ -134,15 +134,13 @@ def create():
 
 @app.route("/catches/<int:number>", methods=["GET"])
 def catches(number):
-    get_auth = get_auth_level(number, AUTH_CATCH)
-    if get_auth!=True:
-        flash("Authentication isn't high enough", "error")
-        return get_auth
-
     sess = orm.get_session()
+    password = ""
+    if 'line_auths' in session and str(number) in session['line_auths']:
+        password = session['line_auths'][str(number)]['password']
     result = render_template("catches.html",
                 line_id = number,
-                password=session['line_auths'][str(number)]['password'],
+                password=password,
                 catches=sess.query(Catch, Trap, Animal).join(Trap).join(Animal).filter(Trap.line_id == number).all(),
                 name=sess.query(Line).filter_by(id=number).first().name,
                 number=number,
