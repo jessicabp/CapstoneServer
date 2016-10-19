@@ -285,13 +285,13 @@ def export(number):
 
     # Get ready to export
     exportData = [traps]
-    currentDate = datetime.fromtimestamp(int(catchData[0][0].time))
+    currentDate = datetime.fromtimestamp(int(catchData[0][0].time)/1000.0)
     cDateStr = currentDate.strftime("%d/%m/%y")
 
     period = [cDateStr] + ["" for i in range(len(traps)-1)]
 
     for catch in catchData:
-        wDate = datetime.fromtimestamp(int(catch[0].time))
+        wDate = datetime.fromtimestamp(int(catch[0].time)/1000.0)
         wDateStr = wDate.strftime("%d/%m/%y")
         if wDateStr != cDateStr:
             cDateStr = wDateStr
@@ -306,7 +306,7 @@ def export(number):
     exportData = list(map(list, zip(*exportData)))
 
     # Make response and return
-    response = make_response(line.name + "\n" + "\n".join([",".join(l) for l in exportData]))
+    response = make_response("sep=,\n" + line.name + "\n" + "\n".join([",".join(l) for l in exportData]))
     response.headers["Content-Disposition"] = "attachment; filename=captures.csv"
     return response
 
