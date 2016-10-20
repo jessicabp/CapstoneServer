@@ -27,10 +27,10 @@
         $(document).ready(function() {
             $('#lines').dataTable({
                 "columns": [
-                {"name": "name", "orderable": true},
-                {"name": "edit", "orderable": false},
-                {"name": "catches", "orderable": false},
-                {"name": "settings", "orderable": false},
+                {"name": "name", "orderable": true, "searchable": true},
+                {"name": "edit", "orderable": false, "searchable": false},
+                {"name": "catches", "orderable": false, "searchable": false},
+                {"name": "settings", "orderable": false, "searchable": false},
                 ],
                 "order": [[0, 'asc']],
                 paging: true,

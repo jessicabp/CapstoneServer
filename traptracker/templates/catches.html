@@ -160,11 +160,11 @@
                         if (table==null){
                             table = $('#catch_table').DataTable({
                                 "columns": [
-                                    {"data": "id", "orderable": false, "visible": false},
-                                    {"data": "time", "orderable": true, "render": timestamp2DDMMYYYY},
-                                    {"data": "trapId", "orderable": false, "visible": false},
-                                    {"data": "trapNumber", "orderable": true},
-                                    {"data": "animalId", "orderable": true}
+                                    {"data": "id", "orderable": false, "searchable": false, "visible": false},
+                                    {"data": "time", "orderable": true, "searchable": true, "render": timestamp2DDMMYYYY},
+                                    {"data": "trapId", "orderable": false, "searchable": false, "visible": false},
+                                    {"data": "trapNumber", "orderable": true, "searchable": true},
+                                    {"data": "animalId", "orderable": true, "searchable": true}
                                 ],
                                 "order": [[1, 'desc']],
                                 paging: true,

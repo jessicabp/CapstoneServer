@@ -184,10 +184,10 @@
                             function bool2LeftRight(data, type, full, meta){return data ? "Left" : "Right";}
                             table = $('#trap_table').DataTable({
                                 "columns": [
-                                    {"data": "id", "orderable": false, "visible": false},
-                                    {"data": "number", "orderable": true},
-                                    {"data": "latitude", "orderable": true},
-                                    {"data": "longitude", "orderable": true},
+                                    {"data": "id", "orderable": false, "searchable": false, "visible": false},
+                                    {"data": "number", "orderable": true, "searchable": true},
+                                    {"data": "latitude", "orderable": true, "searchable": false},
+                                    {"data": "longitude", "orderable": true, "searchable": false},
                                     {"data": "side", "orderable": false, "render": bool2LeftRight},
                                     {"data": "broken", "orderable": true, "render": bool2YesNo},
                                     {"data": "moved", "orderable": true, "render": bool2YesNo}
