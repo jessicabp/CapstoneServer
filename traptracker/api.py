@@ -214,7 +214,7 @@ class CatchInterface(Resource):
             return {"message": "no argument given"}, 404
         result = sess.query(Catch, Trap).join(Trap)
         if 'line_id' in args: result = result.filter(Trap.line_id == args['line_id'])
-        if 'trap_id' in args: result = result.filter_by(trap_id=args['trap_id'])
+        if 'trap_id' in args: result = result.filter(Catch.trap_id== args['trap_id'])
         print(result.all()[0])
         res = []
         for catch, trap in result.all():
