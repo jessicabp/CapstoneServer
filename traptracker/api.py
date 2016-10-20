@@ -307,7 +307,7 @@ class AnimalInterface(Resource):
         Returned:
             JSONObject: {"result": [animal...]}
             Animal Object: {"id": <int>,
-                           "name": <string>}
+                            "name": <string>}
         """
         args = request.args
         result = sess.query(Animal)

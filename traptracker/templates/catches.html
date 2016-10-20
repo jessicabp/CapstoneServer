@@ -8,7 +8,10 @@
             <input type="text" pattern="\d{1,2}/\d{1,2}/\d{4}" id="etime" name="etime" placeholder="DD/MM/YYYY" required/><br>
             <input type="hidden" id="etrapid" name="etrapid" required/><br>
             Animal
-            <input type="number" id="eanimalid" name="eanimalid" placeholder="Animal ID" required/><br>
+            <!--<input type="number" list="animalid_datalist" id="eanimalid" name="eanimalid" placeholder="Animal ID" required/><br>-->
+            <select id="eanimalid" name="eanimalid" placeholder="Animal" required>
+                <option value="0">Empty</option>
+            </select>
             <input id="submitbtn" type="submit" value="Submit" />
         </form>
 
@@ -30,8 +33,11 @@
 
         <script>
             var table = null;
+            var animals = null;
             $('document').ready(function(){
-                refresh_catches();
+                get_animals(function() {
+                    refresh_catches();
+                });
 
                 $('#catch_table tbody').on( 'click', 'tr', function () {
                     if ( $(this).hasClass('selected') ) {
@@ -89,6 +95,34 @@
                 });
             });
 
+            function get_animals(callback) {
+                $.ajax({
+                    type: "GET",
+                    url: "/api/animal",
+                }).done(function(data, statusText, xhr){
+                    var status = xhr.status;                //200
+                    if (status==200) {
+                        data = data['result'];
+                        animals = {};
+                        selectInner = "";
+                        data.forEach(function(d) {
+                            animals[d['id']] = d['name'];
+                            selectInner+="<option value=\"" + d['id'] + "\">" + d['name'] + "</option>";
+                        });
+                        $('#eanimalid').html(selectInner);
+                    }
+                    callback();
+                });
+            }
+
+            function animalID2name(data) {
+                if (animals==null) {
+                    return data;
+                } else {
+                    return animals[data];
+                }
+            }
+
             function get_new_catch_data() {
                 var cat = {};
                 cat['id'] = parseInt(document.getElementById('eid').value);
@@ -113,10 +147,6 @@
                         console.log(xhr.responseText);
                     }
                 }).done(function(data, statusText, xhr){
-                    var status = xhr.status;                //200
-                    var head = xhr.getAllResponseHeaders(); //Detail header info
-                    console.log(status);
-                    console.log(data);
                     refresh_catches();
                 });
                 return true;
@@ -135,13 +165,8 @@
                         console.log(xhr.responseText);
                     }
                 }).done(function(data, statusText, xhr){
-                    var status = xhr.status;                //200
-                    var head = xhr.getAllResponseHeaders(); //Detail header info
-                    console.log(status);
-                    console.log(data);
+                    refresh_catches();
                 });
-
-                refresh_catches();
             }
 
             function refresh_catches(){
@@ -150,9 +175,6 @@
                     url: "/api/catch?line_id={{line_id}}",
                 }).done(function(data, statusText, xhr){
                     var status = xhr.status;                //200
-                    var head = xhr.getAllResponseHeaders(); //Detail header info
-                    console.log(status);
-                    console.log(data);
                     if (status==200) {
                         data = data['result']
                         keys = ['time','trapId','animalId'];
@@ -165,7 +187,7 @@
                                     {"data": "time", "orderable": true, "searchable": true, "render": timestamp2DDMMYYYY},
                                     {"data": "trapId", "orderable": false, "searchable": false, "visible": false},
                                     {"data": "trapNumber", "orderable": true, "searchable": true},
-                                    {"data": "animalId", "orderable": true, "searchable": true}
+                                    {"data": "animalId", "orderable": true, "searchable": true, "render": animalID2name}
                                 ],
                                 "order": [[1, 'desc']],
                                 paging: true,
