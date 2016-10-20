@@ -5,21 +5,21 @@
             <h2>Add Trap</h2>
             <input type="hidden" id="eid" name="eid" value="" />
             <label for="enumber">Number:</label>
-            <input type="text" id="enumber" name="enumber" placeholder="number" />
+            <input type="number" id="enumber" name="enumber" placeholder="number" required/>
             <label for="elatitude">Latitude:</label>
-            <input type="text" id="elatitude" name="elatitude" placeholder="latitude" />
+            <input type="number" pattern="-?\d{1,3}\.\d+" id="elatitude" name="elatitude" placeholder="latitude" required/>
             <label for="elongitude">Longitude:</label>
-            <input type="text" id="elongitude" name="elongitude" placeholder="longitude" />
+            <input type="number" pattern="-?\d{1,3}\.\d+" id="elongitude" name="elongitude" placeholder="longitude" required/>
             <label for="epath_side">Path Side:</label>
-            <select id="epath_side" name="epath_side">
+            <select id="epath_side" name="epath_side" required>
                 <option value="Left">Left</option>
                 <option value="Right">Right</option>
             </select><br>
             <label for="ebroken">Broken:</label>
-            <input type="checkbox" id="ebroken" name="ebroken" /><br>
+            <input type="checkbox" id="ebroken" name="ebroken" required/><br>
             <label for="emoved">Moved:</label>
-            <input type="checkbox" id="emoved" name="emoved" /><br>
-            <input id="submitbtn" type="button" value="Submit" />
+            <input type="checkbox" id="emoved" name="emoved" required/><br>
+            <input id="submitbtn" type="submit" value="Submit" />
         </form>
 
         <input id="addbtn" type="button" value="Add New" />
@@ -87,7 +87,8 @@
                     //submit_trap(trap);
                 });
 
-                $('#submitbtn').click(function(){
+                $('#trap_form').submit(function(event){
+                    event.preventDefault();
                     if (adding) {
                         var trap = get_new_trap_data()
                         delete trap['id'];

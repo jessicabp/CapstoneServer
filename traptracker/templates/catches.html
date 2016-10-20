@@ -5,11 +5,11 @@
         <form id="catch_form" hidden>
             <input type="hidden" id="eid" name="eid" value="" />
             Time
-            <input type="text" id="etime" name="etime" placeholder="Time (DD/MM/YYYY)" /><br>
-            <input type="hidden" id="etrapid" name="etrapid"/><br>
+            <input type="text" pattern="\d{1,2}/\d{1,2}/\d{4}" id="etime" name="etime" placeholder="DD/MM/YYYY" required/><br>
+            <input type="hidden" id="etrapid" name="etrapid" required/><br>
             Animal
-            <input type="text" id="eanimalid" name="eanimalid" placeholder="Animal ID" /><br>
-            <input id="submitbtn" type="button" value="Submit" />
+            <input type="number" id="eanimalid" name="eanimalid" placeholder="Animal ID" required/><br>
+            <input id="submitbtn" type="submit" value="Submit" />
         </form>
 
         <!-- <input id="addbtn" type="button" value="Add New" /> -->
@@ -68,7 +68,8 @@
                     });
                 });
 
-                $('#submitbtn').click(function(){
+                $('#catch_form').submit(function(event){
+                    event.preventDefault();
                     if (adding) {
                         var cat = get_new_catch_data()
                         delete cat['id'];
