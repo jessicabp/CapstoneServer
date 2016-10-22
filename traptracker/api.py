@@ -29,7 +29,7 @@ class AuthInterface(Resource):
             - /checkauth?line_id=1&password=example
         """
         args = request.args
-        if not 'line_id' in args or not 'password' in args:
+        if 'line_id' not in args or 'password' not in args:
             return {"message": "needs line_id and password url parameters"}, 400
         level = authenticate(args['line_id'], args['password'])
         return {'result': level}
@@ -59,8 +59,10 @@ class LineInterface(Resource):
         """
         args = request.args
         result = sess.query(Line)
-        if 'line_id' in args: result = result.filter_by(id=args['line_id'])
-        if 'name' in args: result = result.filter(Line.name.like("%{}%".format(args['name'])))
+        if 'line_id' in args:
+            result = result.filter_by(id=args['line_id'])
+        if 'name' in args:
+            result = result.filter(Line.name.like("%{}%".format(args['name'])))
         return {'result': [line.getDict() for line in result.all()]}, 200
 
 
@@ -93,8 +95,10 @@ class TrapInterface(Resource):
         if not args:
             return {"message": "no argument given"}, 404
         result = sess.query(Trap)
-        if 'line_id' in args: result = result.filter_by(line_id=args['line_id'])
-        if 'trap_id' in args: result = result.filter_by(id=args['trap_id'])
+        if 'line_id' in args:
+            result = result.filter_by(line_id=args['line_id'])
+        if 'trap_id' in args:
+            result = result.filter_by(id=args['trap_id'])
         return {'result': [trap.getDict() for trap in result.all()]}, 200
 
     def put(self):
@@ -213,9 +217,10 @@ class CatchInterface(Resource):
         if not args:
             return {"message": "no argument given"}, 404
         result = sess.query(Catch, Trap).join(Trap)
-        if 'line_id' in args: result = result.filter(Trap.line_id == args['line_id'])
-        if 'trap_id' in args: result = result.filter(Catch.trap_id== args['trap_id'])
-        print(result.all()[0])
+        if 'line_id' in args:
+            result = result.filter(Trap.line_id == args['line_id'])
+        if 'trap_id' in args:
+            result = result.filter(Catch.trap_id == args['trap_id'])
         res = []
         for catch, trap in result.all():
             d = catch.getDict()
@@ -251,11 +256,11 @@ class CatchInterface(Resource):
                 if "id" in catch_data:
                     catch = sess.query(Catch).filter_by(id=catch_data['id']).first()
 
-                    #Edit values in catch
+                    # Edit values in catch
                     catch.trap_id = catch_data['trapId']
                     catch.animal_id = catch_data['animalId']
 
-                else: # ID not given, create new catch
+                else:  # ID not given, create new catch
                     catch = Catch(catch_data['trapId'],
                                   catch_data['animalId'],
                                   catch_data['time'])
@@ -311,7 +316,8 @@ class AnimalInterface(Resource):
         """
         args = request.args
         result = sess.query(Animal)
-        if 'name' in args: result = result.filter(Animal.name.like("%{}%".format(args['name'])))
+        if 'name' in args:
+            result = result.filter(Animal.name.like("%{}%".format(args['name'])))
 
         return {'result': [animal.getDict() for animal in result.all()]}, 200
 

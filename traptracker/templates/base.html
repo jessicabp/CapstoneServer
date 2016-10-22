@@ -2,13 +2,17 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <link rel="stylesheet" href="https://cdn.datatables.net/1.10.12/css/jquery.dataTables.min.css" />
-    <link rel="stylesheet" href="{{url_for('static', filename='styles.css')}}" media="all" />
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.0.1/dist/leaflet.css" />
+    <meta name="viewport" content="width=device-width">
+
     <script src="https://unpkg.com/leaflet@1.0.1/dist/leaflet.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
     <script src="https://cdn.datatables.net/1.10.12/js/jquery.dataTables.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.15.1/moment.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.10.12/css/jquery.dataTables.min.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.0.1/dist/leaflet.css" />
+
+    <link rel="stylesheet" href="{{url_for('static', filename='normalize.css')}}" media="all" />
+    <link rel="stylesheet" href="{{url_for('static', filename='main.css')}}" media="all" />
 
     <script>
         function with_auth(level, callback) {
@@ -41,23 +45,32 @@
     <title>Trap Tracker</title>
 </head>
 <body>
-    <nav>
-        <ul>
-            <li><a href="/">Home</a></li>
-            <li><a href="{{url_for('create')}}">Create Trap Line</a></li>
-            <li><a href="{{url_for('about')}}">About</a></li>
-        </ul>
-    </nav>
-    <main>
-        {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-                {% for category, message in messages %}
-                    <h6 class="{{category}}">{{message}}</h6>
-                {% endfor %}
-            {% endif %}
-        {% endwith %}
+    <div class="header-container">
+        <header class="wrapper clearfix">
+            <h1 class="title">Trap Tracker</h1>
+            <nav>
+                <ul>
+                    <li><a href="/">Home</a></li>
+                    <li><a href="{{url_for('create')}}">Create Line</a></li>
+                    <li><a href="{{url_for('about')}}">About</a></li>
+                </ul>
+            </nav>
+        </header>
+    </div>
 
-        {% block body %} {% endblock %}
-    </main>
+    <div class="main-container">
+        <main class="main wrapper clearfix">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <h6 class="{{category}}">{{message}}</h6>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+            {% block body %} {% endblock %}
+        </main>
+    </div>
+
 </body>
 </html>

@@ -2,7 +2,7 @@ from flask_wtf import FlaskForm, RecaptchaField
 from wtforms import StringField, PasswordField, HiddenField
 from wtforms.validators import DataRequired
 
-animalPlaceholder = "Select animal or type in a new animal for preference "
+animalPlaceholder = "Select animal or type in a new animal "
 
 
 class LoginForm(FlaskForm):
@@ -12,14 +12,14 @@ class LoginForm(FlaskForm):
 
 
 class CreateLineForm(FlaskForm):
-    name = StringField("name", validators=[DataRequired()])
+    name = StringField("name", validators=[DataRequired()], render_kw={"placeholder": "Name of line"})
     uPassword = PasswordField("User Password", validators=[DataRequired()], render_kw={"placeholder": "User password"})
     re_uPassword = PasswordField("re_uPassword", validators=[DataRequired()], render_kw={"placeholder": "Re-enter user password"})
     aPassword = PasswordField("Admin Password", validators=[DataRequired()], render_kw={"placeholder": "Admin password"})
     re_aPassword = PasswordField("re_aPassword", validators=[DataRequired()], render_kw={"placeholder": "Re-enter admin password"})
-    animal1 = StringField("Animal Preference", validators=[DataRequired()], render_kw={"placeholder": animalPlaceholder + "1"})
-    animal2 = StringField("Animal Preference", validators=[DataRequired()], render_kw={"placeholder": animalPlaceholder + "2"})
-    animal3 = StringField("Animal Preference", validators=[DataRequired()], render_kw={"placeholder": animalPlaceholder + "3"})
+    animal1 = StringField("Animal Preference", validators=[DataRequired()], render_kw={"placeholder": animalPlaceholder})
+    animal2 = StringField("Animal Preference", validators=[DataRequired()], render_kw={"placeholder": animalPlaceholder})
+    animal3 = StringField("Animal Preference", validators=[DataRequired()], render_kw={"placeholder": animalPlaceholder})
     recaptcha = RecaptchaField()
 
 

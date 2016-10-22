@@ -12,14 +12,16 @@ import string
 import hashlib
 import binascii
 
+
 def get_auth_level(line_id, level):
     if 'line_auths' not in session:
         session['line_auths'] = {}
     if str(line_id) not in session['line_auths'] or 'password' not in session['line_auths'][str(line_id)]:
         return redirect(url_for('login', level=level, next=request.url))
-    if authenticate(line_id, session['line_auths'][str(line_id)]['password'])<level:
+    if authenticate(line_id, session['line_auths'][str(line_id)]['password']) < level:
         return redirect(url_for('login', level=level, next=request.url))
-    return True;
+    return True
+
 
 @loginManager.user_loader
 def load_user(id):
@@ -52,15 +54,10 @@ def login():
             flash("Password is invalid", "error")
             return redirect(url_for("login"))
 
-        #store the password they used in their session for later API access
-        if str(line_id) not in session['line_auths']: session['line_auths'][str(line_id)] = {}
+        # Store the password they used in their session for later API access
+        if str(line_id) not in session['line_auths']:
+            session['line_auths'][str(line_id)] = {}
         session['line_auths'][str(line_id)]['password'] = form.password.data
-
-        #sess = orm.get_session()
-        #user = sess.query(User).filter_by(line_id=form.name.data).filter_by(auth=level).first()
-        #sess.close()
-
-        #flask_login.login_user(user)
 
         flash("Logged in successfully", "confirm")
         return redirect(next or url_for("index"))
@@ -139,12 +136,12 @@ def catches(number):
     if 'line_auths' in session and str(number) in session['line_auths']:
         password = session['line_auths'][str(number)]['password']
     result = render_template("catches.html",
-                line_id = number,
-                password=password,
-                catches=sess.query(Catch, Trap, Animal).join(Trap).join(Animal).filter(Trap.line_id == number).all(),
-                name=sess.query(Line).filter_by(id=number).first().name,
-                number=number,
-                datetime=datetime)
+                                line_id = number,
+                                password=password,
+                                catches=sess.query(Catch, Trap, Animal).join(Trap).join(Animal).filter(Trap.line_id == number).all(),
+                                name=sess.query(Line).filter_by(id=number).first().name,
+                                number=number,
+                                datetime=datetime)
     sess.close()
     return result
 
@@ -210,8 +207,6 @@ def settings(number):
 
         if form.animal1.data or form.animal2.data or form.animal3.data:
             preferenceChange = True
-
-        print(preferenceChange)
 
         if userChange or adminChange or preferenceChange:
             sess = orm.get_session()
