@@ -5,7 +5,7 @@ import traptracker.orm as orm
 from traptracker.orm import Line, Trap, Catch, Animal, User, create_hashed_line
 
 
-def pushData(bits):
+def pushData(bits, empty=True):
     sess = orm.get_session()
     dataList = []  # A list of all objects to add to the database
 
@@ -33,6 +33,11 @@ def pushData(bits):
                          Catch(6, 4, 1476059954)])
 
     if bits[3] == "1":
+        if empty:
+            empty = Animal("Empty")
+            empty.id = 0
+            dataList.append(empty)
+
         dataList.extend([Animal("Rat"),
                          Animal("Stoat"),
                          Animal("Hedgehog"),
@@ -64,4 +69,4 @@ def wipeDatabase(bits="1111"):
 
 
 if __name__ == '__main__':
-    pushData("1111")
+    pushData("1111", empty=False)
