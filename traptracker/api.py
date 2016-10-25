@@ -13,7 +13,7 @@ sess = orm.get_session()
 class AuthInterface(Resource):
     def get(self):
         """
-        /checkauth GET request will return an integer in JSON format with level of authorisation
+        /api/checkauth GET request will return an integer in JSON format with level of authorisation
         Args:
             - line_id=<int> : line which you want to check the password against
             - password=<string> : user or admin password
@@ -21,12 +21,12 @@ class AuthInterface(Resource):
         Returns:
             - JSONObject: {"result": <int>}
 
-        0: No auth
-        1: view traps, add catches
-        2: edit line, add/edit traps
+            0: No auth
+            1: view traps, add catches
+            2: edit line, add/edit traps
 
         Example:
-            - /checkauth?line_id=1&password=example
+            - /api/checkauth?line_id=1&password=example
         """
         args = request.args
         if 'line_id' not in args or 'password' not in args:
@@ -38,7 +38,7 @@ class AuthInterface(Resource):
 class LineInterface(Resource):
     def get(self):
         """
-        /line GET request will return lines in JSON format back to the user
+        /api/line GET request will return lines in JSON format back to the user
 
         Args:
             - line_id=<int> : filters results by id given (Optional)
@@ -53,9 +53,9 @@ class LineInterface(Resource):
                             "animal3: <int>}
 
         Example:
-            - /line             ->  [{"id":1, "name":"Foo"}, {"id":2, "name":"Bar"}]
-            - /line?line_id=1   ->  [{"id":1, "name":"Foo"}]
-            - /line?name=Ba     ->  [{"id":2, "name":"Bar"}]
+            - /api/line             ->  [{"id":1, "name":"Foo"}, {"id":2, "name":"Bar"}]
+            - /api/line?line_id=1   ->  [{"id":1, "name":"Foo"}]
+            - /api/line?name=Ba     ->  [{"id":2, "name":"Bar"}]
         """
         args = request.args
         result = sess.query(Line)
@@ -69,9 +69,9 @@ class LineInterface(Resource):
 class TrapInterface(Resource):
     def get(self):
         """
-        /trap GET request will return traps in JSON format back to the user
+        /api/trap GET request will return traps in JSON format back to the user
 
-        Args (Optional):
+        Args:
         - line_id=<int> : filters results by line id given
         - trap_id=<int> : filters results by trap id given
 
@@ -87,10 +87,9 @@ class TrapInterface(Resource):
                         'moved': <boolean>}
 
         Example:
-            - /trap?line_id=1   ->  [{TrapObject}, {TrapObject}, {TrapObject}]
-            - /trap?trap_id=1   ->  [{TrapObject}]
+            - /api/trap?line_id=1   ->  [{TrapObject}, {TrapObject}, {TrapObject}]
+            - /api/trap?trap_id=1   ->  [{TrapObject}]
         """
-
         args = request.args
         if not args:
             return {"message": "no argument given"}, 404
@@ -103,7 +102,7 @@ class TrapInterface(Resource):
 
     def put(self):
         """
-        /trap PUT request will write or edit trap objects into the database
+        /api/trap PUT request will write or edit trap objects into the database
 
         Content-type: application/json
         Payload:
@@ -121,8 +120,13 @@ class TrapInterface(Resource):
 
         Example payload:
             {"line_id":1, "password":"1234", "traps":[{TrapObject}, {TrapObject}, {TrapObject}]}
-        """
 
+        Exceptions:
+            - 403: Could not validate password
+            - 400: Non iterable datatype passed with traps
+            - 403: Could not validate admin password
+            - 400: Could not enter trap into database (Missing key/failure to write)
+        """
         json_data = request.get_json()
 
         if authenticate(json_data['lineId'], json_data['password']) < AUTH_CATCH:
@@ -171,7 +175,7 @@ class TrapInterface(Resource):
 
     def delete(self):
         """
-        /trap DELETE request will delete multiple traps in the database belonging to one line
+        /api/trap DELETE request will delete multiple traps in the database belonging to one line
 
         Content-type: application/json
         Payload:
@@ -179,6 +183,9 @@ class TrapInterface(Resource):
                            "password": <string>,
                            "traps": [<int>...]}
 
+        Exceptions:
+            - 400: Trap belongs to a different line
+            - 401: Could not validate user
         """
         json_data = request.get_json()
         if authenticate(json_data['lineId'], json_data['password']) >= AUTH_LINE:
@@ -199,7 +206,7 @@ class TrapInterface(Resource):
 class CatchInterface(Resource):
     def get(self):
         """
-        /catch GET request will return catches in JSON format back to the user
+        /api/catch GET request will return catches in JSON format back to the user
 
         Args:
         - line_id=<int> : filters results by line id given by relationship query to a trap (Optional)
@@ -212,6 +219,13 @@ class CatchInterface(Resource):
                            'trapNumber': <int>,
                            'animalId': <int>,
                            'time': <long int>}
+
+        Example:
+            - /api/catch?line_id=1   ->  [{CatchObject w/ trapNumber -> Trap.line_id == 1}, ...]
+            - /api/catch?trap_id=1   ->  [{CatchObject w/ id == 1}]
+
+        Exceptions:
+            - 404: No argument given
         """
         args = request.args
         if not args:
@@ -230,7 +244,7 @@ class CatchInterface(Resource):
 
     def put(self):
         """
-        /catch PUT request will write or edit catch objects into the database
+        /api/catch PUT request will write or edit catch objects into the database
 
         Content-type: application/json
         Payload:
@@ -241,6 +255,14 @@ class CatchInterface(Resource):
                            'trapId': <int>,
                            'animalId': <int>,
                            'time': <long int> (Ignored when overriding set in database)}
+
+        Example payload:
+            {"line_id":1, "password":"1234", "catches":[{CatchObject}, {CatchObject}, {CatchObject}]}
+
+        Exceptions:
+            - 403: Could not validate password
+            - 400: Non iterable datatype passed with catches
+            - 400: Could not enter catch into database (Missing key/failure to write)
         """
         json_data = request.get_json()
 
@@ -276,7 +298,7 @@ class CatchInterface(Resource):
 
     def delete(self):
         """
-        /catch DELETE request will delete multiple catches in the database
+        /api/catch DELETE request will delete multiple catches in the database
 
         Content-type: application/json
         Payload:
@@ -284,6 +306,9 @@ class CatchInterface(Resource):
                            "password": <string>,
                            "catches": [<int>...]}
 
+        Exceptions:
+            - 400: Catch belongs to different line
+            - 401: Could not validate user
         """
         json_data = request.get_json()
         if authenticate(json_data['lineId'], json_data['password']) >= AUTH_LINE:
@@ -304,15 +329,19 @@ class CatchInterface(Resource):
 class AnimalInterface(Resource):
     def get(self):
         """
-        /animal GET request will return animals in JSON format back to the user
+        /api/animal GET request will return animals in JSON format back to the user
 
         Args:
-        - name=<string> : filters results by searching for string input as substring (Optional)
+            - name=<string> : filters results by searching for string input as substring (Optional)
 
         Returned:
             JSONObject: {"result": [animal...]}
             Animal Object: {"id": <int>,
                             "name": <string>}
+
+        Example:
+            - /api/animal           ->  [{"id": "1", "name": "Foo"}, {"id": "2", "name": "Bar"}]
+            - /api/animal?name=Ba   ->  [{"id": "2", "name": "Bar"}]
         """
         args = request.args
         result = sess.query(Animal)
@@ -330,6 +359,11 @@ class AnimalInterface(Resource):
             JSONObject:   {"lineId": <int>
                            "password": <string>,
                            "animals": [<string>...]}
+
+        Exceptions:
+            - 403: Could not validate password
+            - 400: Non iterable datatype passed with animals
+            - 400: Could not enter catch into database (Missing key/failure to write)
         """
         json_data = request.get_json()
 
@@ -338,7 +372,7 @@ class AnimalInterface(Resource):
                 return {"message": "could not validate password"}, 403
 
             if not isinstance(json_data["animals"], list):
-                return {"message": "non iterable datatype passed with catches"}, 400
+                return {"message": "non iterable datatype passed with animals"}, 400
 
             animals = []
 

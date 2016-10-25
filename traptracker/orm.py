@@ -145,20 +145,6 @@ class Animal(Base):
     def getDict(self):
         return {"id": self.id, "name": self.name}
 
-
-class Image(Base):
-    __tablename__ = "image"
-    id = Column(Integer, primary_key=True)
-    catch_id = Column(Integer, ForeignKey("catch.id"))
-    url = Column(String(100))
-
-    def __init__(self, url):
-        self.url = url
-
-    def __repr__(self):
-        return "<Image id:{} catch_id:{} url:{}>".format(self.id, self.catch_id, self.url)
-
-
 # End Object defs
 
 engine = create_engine(SQLALCHEMY_DATABASE_URI)

@@ -183,7 +183,7 @@ class TestAnimalInterfaceFailures(unittest.TestCase):
         response = self.app.put(animalUrl, data=jsonData, content_type="application/json", base_url=baseUrl)
 
         self.assertEqual(response.status_code, 400, "Wrong error code returned with non list for traps")
-        self.assertIn("non iterable datatype passed with catches", response.data.decode("utf-8"), "Wrong message given")
+        self.assertIn("non iterable datatype passed with animals", response.data.decode("utf-8"), "Wrong message given")
 
     def testPut_CantAuthenticateFailure(self):
         jsonData = json.dumps({"lineId": 1,
