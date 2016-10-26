@@ -217,7 +217,6 @@ textarea {
 }
 
 #trap_form, #catch_form {
-    width: 100%;
     padding: 10px;
     border-radius: 10px;
     margin-bottom: 25px;
