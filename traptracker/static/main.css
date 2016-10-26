@@ -81,11 +81,11 @@ body {
 .header-container,
 .footer-container,
 .main aside {
-    background: #5FBF00;
+    background: #E8E8E8;
 }
 
 .title {
-    color: white;
+    color: #448601;
 }
 
 /* ==============
