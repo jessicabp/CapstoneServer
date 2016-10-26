@@ -232,7 +232,7 @@ class TestAuthInterfaceFailures(unittest.TestCase):
     def testGet_MissingPasswordArgFailure(self):
         self.requestAuth("?line_id=1")
 
-    def testGet_MissingPasswordArgFailure(self):
+    def testGet_MissingLineArgFailure(self):
         self.requestAuth("?password=password")
 
 
