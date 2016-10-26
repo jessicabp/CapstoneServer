@@ -55,6 +55,14 @@ class TestTrapInterfaceFailures(unittest.TestCase):
         self.assertEqual(response.status_code, 403, "Wrong error code returned with failure to authenticate")
         self.assertIn("could not validate password", response.data.decode("utf-8"), "Wrong message given")
 
+    def testPut_NoLineExistsFailure(self):
+        jsonData = json.dumps({"lineId": 42, "password": "!s0meth@ng"})
+
+        response = self.app.put(trapUrl, data=jsonData, content_type="application/json", base_url=baseUrl)
+
+        self.assertEqual(response.status_code, 403, "Wrong error code returned with failure to authenticate")
+        self.assertIn("could not validate password", response.data.decode("utf-8"), "Wrong message given")
+
     def testPut_MissingKeyFailure(self):
         jsonData = json.dumps({"lineId": 1, "password": "!s0meth@ng", "traps": [{"lat": testTrap.lat}]})
 
@@ -88,6 +96,17 @@ class TestTrapInterfaceFailures(unittest.TestCase):
 
         self.assertEqual(response.status_code, 401, "Wrong error code returned with low auth level")
         self.assertIn("could not validate user", response.data.decode("utf-8"), "Wrong message given")
+
+    def testDelete_NoLineExistsFailure(self):
+        jsonData = json.dumps({"lineId": 42,
+                               "password": "!s0meth@ng",
+                               "traps": [1, 4]})
+
+        response = self.app.delete(trapUrl, data=jsonData, content_type="application/json", base_url=baseUrl)
+
+        self.assertEqual(response.status_code, 401, "Wrong error code returned with low auth level")
+        self.assertIn("could not validate user", response.data.decode("utf-8"), "Wrong message given")
+
 
     def testDelete_DifferentLineFailure(self):
         jsonData = json.dumps({"lineId": 1,
@@ -133,6 +152,14 @@ class TestCatchInterfaceFailures(unittest.TestCase):
         self.assertEqual(response.status_code, 403, "Wrong error code returned with failure to authenticate")
         self.assertIn("could not validate password", response.data.decode("utf-8"), "Wrong message given")
 
+    def testPut_NoLineExistsFailure(self):
+        jsonData = json.dumps({"lineId": 42, "password":"!s0meth@ng"})
+
+        response = self.app.put(catchUrl, data=jsonData, content_type="application/json", base_url=baseUrl)
+
+        self.assertEqual(response.status_code, 403, "Wrong error code returned with failure to authenticate")
+        self.assertIn("could not validate password", response.data.decode("utf-8"), "Wrong message given")
+
     def testPut_MissingKeyFailure(self):
         jsonData = json.dumps({"lineId": 1, "password":"password", "catches":[{"time": testCatch.time}]})
 
@@ -144,6 +171,16 @@ class TestCatchInterfaceFailures(unittest.TestCase):
     def testDelete_LowAuthFailure(self):
         jsonData = json.dumps({"lineId": 1,
                                "password": "password",
+                               "catches": [1, 4]})
+
+        response = self.app.delete(catchUrl, data=jsonData, content_type="application/json", base_url=baseUrl)
+
+        self.assertEqual(response.status_code, 401, "Wrong error code returned with low auth level")
+        self.assertIn("could not validate user", response.data.decode("utf-8"), "Wrong message given")
+
+    def testDelete_NoLineExistsFailure(self):
+        jsonData = json.dumps({"lineId": 42,
+                               "password": "!s0meth@ng",
                                "catches": [1, 4]})
 
         response = self.app.delete(catchUrl, data=jsonData, content_type="application/json", base_url=baseUrl)
@@ -187,6 +224,17 @@ class TestAnimalInterfaceFailures(unittest.TestCase):
 
     def testPut_CantAuthenticateFailure(self):
         jsonData = json.dumps({"lineId": 1,
+                                "password": "incorrect",
+                                "animals": [testAnimal1.name, testAnimal2.name]
+                                })
+
+        response = self.app.put(animalUrl, data=jsonData, content_type="application/json", base_url=baseUrl)
+
+        self.assertEqual(response.status_code, 403, "Wrong error code returned with failure to authenticate")
+        self.assertIn("could not validate password", response.data.decode("utf-8"), "Wrong message given")
+
+    def testPut_NoLineExistsFailure(self):
+        jsonData = json.dumps({"lineId": 42,
                                 "password": "incorrect",
                                 "animals": [testAnimal1.name, testAnimal2.name]
                                 })
