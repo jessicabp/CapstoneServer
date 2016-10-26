@@ -272,6 +272,22 @@ main h6 {
     text-align: center;
 }
 
+table.dataTable tbody td {
+    border-top: 1px solid #ddd;
+}
+
+table.dataTable tbody tr.odd {
+    background-color: #f9f9f9;
+}
+
+table.dataTable tbody tr:hover {
+    background-color: #F0F0F0;
+}
+
+table.dataTable tbody tr.selected {
+    background-color: #b3d4fc;
+}
+
 
 /* ******************************* */
 /* "Button" */
