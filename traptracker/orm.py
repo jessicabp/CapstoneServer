@@ -3,7 +3,6 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from flask_login import UserMixin
 
 import hashlib
 import binascii
@@ -27,20 +26,6 @@ def create_hashed_line(name, uPassword, aPassword, animal1, animal2, animal3):
 
 
 # Object defs
-class User(Base, UserMixin):
-    __tablename__ = 'user'
-    id = Column(Integer, primary_key=True)
-    line_id = Column(Integer, ForeignKey("line.id"))
-    auth = Column(Integer)
-
-    def __init__(self, line_id, auth):
-        self.line_id = line_id
-        self.auth = auth
-
-    def get_id(self):
-        return str(self.id)
-
-
 class Line(Base):
     __tablename__ = 'line'
     id = Column(Integer, primary_key=True)

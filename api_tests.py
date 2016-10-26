@@ -208,7 +208,7 @@ class TestCatchInterface(unittest.TestCase):
         catch = sess.query(Catch).filter_by(id=1).first()
         self.assertEqual(catch.trap_id, 1, "/catch trap_id not stored correctly")
         self.assertEqual(catch.animal_id, 0, "/catch animal_id not stored correctly")
-        self.assertNotEqual(catch.time, 221319957, "/catch time not stored correctly") # Time shouldn't change
+        self.assertEqual(catch.time, 221319957, "/catch time not stored correctly") # Time shouldn't change
         sess.close()
 
     def testDelete(self):

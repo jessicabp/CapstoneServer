@@ -2,7 +2,7 @@
 Uploads a bunch of junk test data to the orm database
 """
 import traptracker.orm as orm
-from traptracker.orm import Line, Trap, Catch, Animal, User, create_hashed_line
+from traptracker.orm import Line, Trap, Catch, Animal, create_hashed_line
 
 
 def pushData(bits, empty=True):
@@ -11,9 +11,7 @@ def pushData(bits, empty=True):
 
     if bits[0] == "1":
         dataList.extend([create_hashed_line("Manatawu Gorge", "password", "!s0meth@ng", 3, 2, 4),
-                         User(1, 1), User(1, 2),
-                         create_hashed_line("Kaimais", "UPPERCASE", "whatsup?", 1, 2, 3),
-                         User(2, 1), User(2, 2)])
+                         create_hashed_line("Kaimais", "UPPERCASE", "whatsup?", 1, 2, 3)])
 
     if bits[1] == "1":
         dataList.extend([Trap(-40.311121, 175.777068, 1, 1, 1),
@@ -53,7 +51,6 @@ def wipeDatabase(bits="1111"):
 
     if bits[0] == "1":
         sess.query(Line).delete()
-        sess.query(User).delete()
 
     if bits[0] == "1":
         sess.query(Trap).delete()

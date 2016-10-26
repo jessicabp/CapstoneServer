@@ -34,11 +34,14 @@
                 }
             });
         }
+
+        var DATE_FORMAT = 'DD/MMM/YYYY';
+
         function timestamp2DDMMYYYY(data){
-            return moment.utc(data).local().format('DD/MM/YYYY');
+            return moment.utc(data).local().format(DATE_FORMAT);
         }
         function DDMMYYYY2timestamp(data){
-            return moment(data,'DD/MM/YYYY').utc().valueOf();
+            return moment(data, DATE_FORMAT).utc().valueOf();
         }
     </script>
 

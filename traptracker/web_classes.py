@@ -1,9 +1,8 @@
 from flask import render_template, request, redirect, url_for, send_file, flash, session, make_response
-import flask_login
 
 import traptracker.orm as orm
-from traptracker import app, loginManager
-from traptracker.orm import Line, Trap, Catch, Animal, User, create_hashed_line
+from traptracker import app
+from traptracker.orm import Line, Trap, Catch, Animal, create_hashed_line
 from traptracker.auth import authenticate, AUTH_NONE, AUTH_CATCH, AUTH_LINE
 from traptracker.website_forms import LoginForm, CreateLineForm, SettingsForm
 
@@ -21,14 +20,6 @@ def get_auth_level(line_id, level):
     if authenticate(line_id, session['line_auths'][str(line_id)]['password']) < level:
         return redirect(url_for('login', level=level, next=request.url))
     return True
-
-
-@loginManager.user_loader
-def load_user(id):
-    sess = orm.get_session()
-    line = sess.query(User).get(id)
-    sess.close()
-    return line
 
 
 @app.route("/", methods=["GET"])
@@ -66,13 +57,6 @@ def login():
     return render_template("login.html", form=form, line_id=line_id, next=next)
 
 
-@app.route("/logout", methods=["GET"])
-@flask_login.login_required
-def logout():
-    flask_login.logout_user()
-    return redirect(url_for("index"))
-
-
 @app.route("/about", methods=["GET"])
 def about():
     return render_template("about.html")
@@ -80,7 +64,6 @@ def about():
 
 @app.route("/create", methods=["GET", "POST"])
 def create():
-    flask_login.logout_user()
     form = CreateLineForm()
 
     sess = orm.get_session()
@@ -112,9 +95,6 @@ def create():
         # Write to database
         try:
             sess.add(line)
-            sess.commit()
-            sess.add(User(line.id, 1))
-            sess.add(User(line.id, 2))
             sess.commit()
         except:
             flash("The line name already exists in the database", "error")
@@ -179,11 +159,6 @@ def settings(number):
     if get_auth!=True:
         flash("Authentication isn't high enough", "error")
         return get_auth
-
-    #if flask_login.current_user.auth == 1:
-    #    session.pop('_flashes', None)
-    #    flash("Authentication isn't high enough", "error")
-    #    return redirect(url_for("index"))
 
     # Set up forms and data
     form = SettingsForm()

@@ -1,7 +1,6 @@
 from flask import Flask
 from flask_sslify import SSLify
 from flask_restful import Api
-import flask_login
 
 from traptracker.api import LineInterface, TrapInterface, AnimalInterface, CatchInterface, AuthInterface
 import traptracker.orm as orm
@@ -14,23 +13,6 @@ app = Flask(__name__)
 sslify = SSLify(app)
 app.config.from_object('traptracker.config')
 api = Api(app)
-
-# Flask Login
-loginManager = flask_login.LoginManager()
-loginManager.login_view = "login"
-loginManager.login_message = "Please log in to access this page"
-loginManager.login_message_category = "warning"
-
-
-class Anonymous(flask_login.AnonymousUserMixin):
-    def __init__(self):
-        self.username = "Guest"
-
-    def __repr__(self):
-        return "<User: {}>".format(self.username)
-
-loginManager.anonymous_user = Anonymous
-loginManager.init_app(app)
 
 # Set up logging
 logging.basicConfig(

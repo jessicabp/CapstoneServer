@@ -281,6 +281,7 @@ class CatchInterface(Resource):
                     # Edit values in catch
                     catch.trap_id = catch_data['trapId']
                     catch.animal_id = catch_data['animalId']
+                    catch.time = catch_data['time']
 
                 else:  # ID not given, create new catch
                     catch = Catch(catch_data['trapId'],
