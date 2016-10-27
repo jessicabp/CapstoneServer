@@ -10,7 +10,7 @@ def pushData(bits, empty=True):
     dataList = []  # A list of all objects to add to the database
 
     if bits[0] == "1":
-        dataList.extend([create_hashed_line("Manatawu Gorge", "password", "!s0meth@ng", 3, 2, 4),
+        dataList.extend([create_hashed_line("Manawatu Gorge", "password", "!s0meth@ng", 3, 2, 4),
                          create_hashed_line("Kaimais", "UPPERCASE", "whatsup?", 1, 2, 3)])
 
     if bits[1] == "1":
