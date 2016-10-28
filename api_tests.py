@@ -41,7 +41,7 @@ class TestLineInterface(unittest.TestCase):
         responseJSON = json.loads(self.app.get(lineUrl + "?line_id=1", base_url=baseUrl).data.decode("utf-8"))["result"]
 
         self.assertEqual(len(responseJSON), 1, "/line?line_id not returning correct amount")
-        self.assertEqual(responseJSON[0]['name'], "Manatawu Gorge", "/line?line_id table not returning correct name")
+        self.assertEqual(responseJSON[0]['name'], "Manawatu Gorge", "/line?line_id table not returning correct name")
 
     def testGet_NameQeury(self):
         responseJSON = json.loads(self.app.get(lineUrl + "?name=Kai", base_url=baseUrl).data.decode("utf-8"))["result"]
